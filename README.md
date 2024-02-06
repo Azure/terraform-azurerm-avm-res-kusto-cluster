@@ -12,7 +12,12 @@ Things to do:
 1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
 1. Search and update TODOs within the code and remove the TODO comments once complete.
 
-Major version Zero (0.y.z) is for initial development. Anything MAY change at any time. A module SHOULD NOT be considered stable till at least it is major version one (1.0.0) or greater. Changes will always be via new versions being published and no changes will be made to existing published versions. For more details please go to <https://semver.org/>
+> [!IMPORTANT]
+> As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
+>
+> All module **MUST** be published as a pre-release version (e.g., `0.1.0`, `0.1.1`, `0.2.0`, etc.) until the AVM framework becomes GA.
+>
+> However, it is important to note that this **DOES NOT** mean that the modules cannot be consumed and utilized. They **CAN** be leveraged in all types of environments (dev, test, prod etc.). Consumers can treat them just like any other IaC module and raise issues or feature requests against them as they learn from the usage of the module. Consumers should also read the release notes for each version, if considering updating to a more recent version of a module to see if there are any considerations or breaking changes etc.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -37,14 +42,13 @@ The following providers are used by this module:
 
 The following resources are used by this module:
 
-- [azurerm_TODO_the_resource_for_this_module.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/TODO_the_resource_for_this_module) (resource)
+- [azurerm_kusto_cluster.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kusto_cluster) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [random_id.telem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
-- [azurerm_resource_group.parent](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -63,9 +67,120 @@ Description: The resource group where the resources will be deployed.
 
 Type: `string`
 
+### <a name="input_sku"></a> [sku](#input\_sku)
+
+Description: A sku block supports the following:
+
+name - (Required) The name of the SKU.   
+
+Possible values are:
+- Dev(No SLA)\_Standard\_D11\_v2,
+- Dev(No SLA)\_Standard\_E2a\_v4,
+- Standard\_D14\_v2,
+- Standard\_D11\_v2,
+- Standard\_D16d\_v5,
+- Standard\_D13\_v2,
+- Standard\_D12\_v2,
+- Standard\_DS14\_v2+4TB\_PS,
+- Standard\_DS14\_v2+3TB\_PS,
+- Standard\_DS13\_v2+1TB\_PS,
+- Standard\_DS13\_v2+2TB\_PS,
+- Standard\_D32d\_v5,
+- Standard\_D32d\_v4,
+- Standard\_EC8ads\_v5,
+- Standard\_EC8as\_v5+1TB\_PS,
+- Standard\_EC8as\_v5+2TB\_PS,
+- Standard\_EC16ads\_v5,
+- Standard\_EC16as\_v5+4TB\_PS,
+- Standard\_EC16as\_v5+3TB\_PS,
+- Standard\_E80ids\_v4,
+- Standard\_E8a\_v4,
+- Standard\_E8ads\_v5,
+- Standard\_E8as\_v5+1TB\_PS,
+- Standard\_E8as\_v5+2TB\_PS,
+- Standard\_E8as\_v4+1TB\_PS,
+- Standard\_E8as\_v4+2TB\_PS,
+- Standard\_E8d\_v5,
+- Standard\_E8d\_v4,
+- Standard\_E8s\_v5+1TB\_PS,
+- Standard\_E8s\_v5+2TB\_PS,
+- Standard\_E8s\_v4+1TB\_PS,
+- Standard\_E8s\_v4+2TB\_PS,
+- Standard\_E4a\_v4,
+- Standard\_E4ads\_v5,
+- Standard\_E4d\_v5,
+- Standard\_E4d\_v4,
+- Standard\_E16a\_v4,
+- Standard\_E16ads\_v5,
+- Standard\_E16as\_v5+4TB\_PS,
+- Standard\_E16as\_v5+3TB\_PS,
+- Standard\_E16as\_v4+4TB\_PS,
+- Standard\_E16as\_v4+3TB\_PS,
+- Standard\_E16d\_v5,
+- Standard\_E16d\_v4,
+- Standard\_E16s\_v5+4TB\_PS,
+- Standard\_E16s\_v5+3TB\_PS,
+- Standard\_E16s\_v4+4TB\_PS,
+- Standard\_E16s\_v4+3TB\_PS,
+- Standard\_E64i\_v3,
+- Standard\_E2a\_v4,
+- Standard\_E2ads\_v5,
+- Standard\_E2d\_v5,
+- Standard\_E2d\_v4,
+- Standard\_L8as\_v3,
+- Standard\_L8s,
+- Standard\_L8s\_v3,
+- Standard\_L8s\_v2,
+- Standard\_L4s,
+- Standard\_L16as\_v3,
+- Standard\_L16s,
+- Standard\_L16s\_v3,
+- Standard\_L16s\_v2,
+- Standard\_L32as\_v3
+- Standard\_L32s\_v3  
+capacity - (Optional) Specifies the node count for the cluster. Boundaries depend on the SKU name.  
+NOTE:  
+If no optimized\_auto\_scale block is defined, then the capacity is required. ~> NOTE: If an optimized\_auto\_scale block is defined and no capacity is set, then the capacity is initially set to the value of minimum\_instances.
+
+Type:
+
+```hcl
+object({
+    name     = string
+    capacity = number
+  })
+```
+
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_allowed_fqdns"></a> [allowed\_fqdns](#input\_allowed\_fqdns)
+
+Description: (Optional) List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster.
+
+Type: `set(string)`
+
+Default: `null`
+
+### <a name="input_allowed_ip_ranges"></a> [allowed\_ip\_ranges](#input\_allowed\_ip\_ranges)
+
+Description: (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
+
+Type: `set(string)`
+
+Default: `null`
+
+### <a name="input_auto_stop_enabled"></a> [auto\_stop\_enabled](#input\_auto\_stop\_enabled)
+
+Description: (Optional) Specifies if the cluster could be automatically stopped
+(due to lack of data or no activity for many days).
+
+Defaults to true.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
@@ -118,6 +233,22 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_disk_encryption_enabled"></a> [disk\_encryption\_enabled](#input\_disk\_encryption\_enabled)
+
+Description: (Optional) Specifies if the cluster's disks are encrypted.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_double_encryption_enabled"></a> [double\_encryption\_enabled](#input\_double\_encryption\_enabled)
+
+Description: (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
+
+Type: `bool`
+
+Default: `null`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -127,6 +258,26 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_language_extensions"></a> [language\_extensions](#input\_language\_extensions)
+
+Description: (Optional) An list of language\_extensions to enable.   
+
+Valid values are: PYTHON, PYTHON\_3.10.8 and R.   
+
+PYTHON is used to specify Python 3.6.5 image and PYTHON\_3.10.8 is used to specify Python 3.10.8 image.  
+Note that PYTHON\_3.10.8 is only available in skus which support nested virtualization.
+
+NOTE:  
+In v4.0.0 and later version of the AzureRM Provider,   
+language\_extensions will be changed to a list of language\_extension block.   
+In each block, name and image are required.   
+name is the name of the language extension, possible values are PYTHON, R.   
+image is the image of the language extension, possible values are Python3\_6\_5, Python3\_10\_8 and R.
+
+Type: `set(string)`
+
+Default: `null`
 
 ### <a name="input_location"></a> [location](#input\_location)
 
@@ -159,12 +310,42 @@ Type:
 
 ```hcl
 object({
-    system_assigned            = optional(bool, false)
+    type                       = string
     user_assigned_resource_ids = optional(set(string), [])
   })
 ```
 
-Default: `{}`
+Default: `null`
+
+### <a name="input_optimized_auto_scale"></a> [optimized\_auto\_scale](#input\_optimized\_auto\_scale)
+
+Description: A optimized\_auto\_scale block supports the following:
+
+minimum\_instances - (Required) The minimum number of allowed instances. Must between 0 and 1000.
+
+maximum\_instances - (Required) The maximum number of allowed instances. Must between 0 and 1000.
+
+Type:
+
+```hcl
+object({
+    maximum_instances = number
+    minimum_instances = string
+  })
+```
+
+Default: `null`
+
+### <a name="input_outbound_network_access_restricted"></a> [outbound\_network\_access\_restricted](#input\_outbound\_network\_access\_restricted)
+
+Description: (Optional) Whether to restrict outbound network access.   
+Value is optional but if passed in, must be true or false.  
+
+Default is false.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
 
@@ -222,6 +403,30 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_public_ip_type"></a> [public\_ip\_type](#input\_public\_ip\_type)
+
+Description: (Optional) Indicates what public IP type to create - IPv4 (default), or DualStack (both IPv4 and IPv6). Defaults to IPv4.
+
+Type: `string`
+
+Default: `"IPv4"`
+
+### <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled)
+
+Description: (Optional) Is the public network access enabled? Defaults to true.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_purge_enabled"></a> [purge\_enabled](#input\_purge\_enabled)
+
+Description: (Optional) Specifies if the purge operations are enabled.
+
+Type: `bool`
+
+Default: `null`
+
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
 Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
@@ -251,17 +456,87 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_streaming_ingestion_enabled"></a> [streaming\_ingestion\_enabled](#input\_streaming\_ingestion\_enabled)
+
+Description: (Optional) Specifies if the streaming ingest is enabled.
+
+Type: `bool`
+
+Default: `null`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: The map of tags to be applied to the resource
+Description: Map of tags to assign to the resource.
 
-Type: `map(any)`
+Type: `map(string)`
 
-Default: `{}`
+Default: `null`
+
+### <a name="input_trusted_external_tenants"></a> [trusted\_external\_tenants](#input\_trusted\_external\_tenants)
+
+Description: (Optional) Specifies a list of tenant IDs that are trusted by the cluster.   
+New or updated Kusto Cluster will only allow your own tenant by default.
+
+Use trusted\_external\_tenants = ["*"] to explicitly allow all other tenants,   
+trusted\_external\_tenants = [] for only your tenant or   
+trusted\_external\_tenants = ["<tenantId1>", "<tenantIdx>"] to allow specific other tenants.
+
+Type: `set(string)`
+
+Default: `[]`
+
+### <a name="input_virtual_network_configuration"></a> [virtual\_network\_configuration](#input\_virtual\_network\_configuration)
+
+Description: (Optional) A virtual\_network\_configuration block as defined below.   
+Changing this forces a new resource to be created.
+
+A virtual\_network\_configuration block supports the following:
+
+subnet\_id - (Required) The subnet resource id.
+
+engine\_public\_ip\_id - (Required) Engine service's public IP address resource id.
+
+data\_management\_public\_ip\_id - (Required) Data management's service public IP address resource id.
+
+Type:
+
+```hcl
+object({
+    data_management_public_ip_id = string
+    engine_public_ip_id          = string
+    subnet_id                    = string
+  })
+```
+
+Default: `null`
+
+### <a name="input_zones"></a> [zones](#input\_zones)
+
+Description: (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
+
+Type: `set(string)`
+
+Default: `null`
 
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_data_ingestion_uri"></a> [data\_ingestion\_uri](#output\_data\_ingestion\_uri)
+
+Description: The Kusto Cluster URI to be used for data ingestion.
+
+### <a name="output_id"></a> [id](#output\_id)
+
+Description: The Kusto Cluster ID.
+
+### <a name="output_identity"></a> [identity](#output\_identity)
+
+Description: An identity block exports the following:
+
+principal\_id - The Principal ID associated with this System Assigned Managed Service Identity.
+
+tenant\_id - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
@@ -270,6 +545,10 @@ Description: A map of private endpoints. The map key is the supplied input to va
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
 Description: This is the full output for the resource.
+
+### <a name="output_uri"></a> [uri](#output\_uri)
+
+Description: The FQDN of the Azure Kusto Cluster.
 
 ## Modules
 
