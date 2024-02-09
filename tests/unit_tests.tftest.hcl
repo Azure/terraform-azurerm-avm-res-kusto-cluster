@@ -1,6 +1,34 @@
-mock_provider "azurerm" {}
+mock_provider "azurerm" {
+  source = "tests/mock_data"
+}
+
+run "setup_dependencies" {
+  module {
+    source = "./tests/setup"
+  }
+
+  override_resource {
+    target = azurerm_subnet.example
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+    }
+  }
+  override_resource {
+    target = azurerm_log_analytics_workspace.example
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.OperationalInsights/workspaces/workspace"
+    }
+  }
+  override_resource {
+    target = azurerm_storage_account.example
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.Storage/storageAccounts/myaccount"
+    }
+  }
+}
 
 run "validation_rules_required_pass" {
+
   variables {
     name                = "demo"
     resource_group_name = "demo"
@@ -8,6 +36,18 @@ run "validation_rules_required_pass" {
     sku = {
       name     = "Dev(No SLA)_Standard_D11_v2"
       capacity = 1
+    }
+    diagnostic_settings = {
+      operations = {
+        name                        = "Operational logs"
+        workspace_resource_id       = run.setup_dependencies.azurerm_log_analytics_workspace.id
+        storage_account_resource_id = run.setup_dependencies.azurerm_storage_account.id
+      }
+    }
+    private_endpoints = {
+      pip1 = {
+        subnet_resource_id = run.setup_dependencies.azurerm_subnet.id
+      }
     }
   }
 
@@ -139,10 +179,19 @@ run "validation_rules_fails" {
       name = "Lock. name"
       kind = "Fails"
     }
+    diagnostic_settings = {
+      operations = {
+        name = "Operational logs"
+      }
+    }
   }
 
   expect_failures = [
-    var.name, var.sku, var.language_extensions,
-    var.lock
+    var.name,
+    var.sku,
+    var.language_extensions,
+    var.lock,
+    var.diagnostic_settings,
+    # var.private_endpoints
   ]
 }

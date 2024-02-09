@@ -168,16 +168,12 @@ variable "allowed_fqdns" {
   type        = set(string)
   default     = null
   description = "(Optional) List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster."
-
-  #TODO add regex to validate FQDN format
 }
 
 variable "allowed_ip_ranges" {
   type        = set(string)
   default     = null
   description = "(Optional) The list of ips in the format of CIDR allowed to connect to the cluster."
-
-  #TODO add regex to validate CIDR format
 }
 
 variable "auto_stop_enabled" {
