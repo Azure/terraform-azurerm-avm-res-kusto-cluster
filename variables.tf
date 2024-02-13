@@ -201,6 +201,44 @@ variable "customer_managed_key" {
   description = "Customer managed keys that should be associated with the resource."
 }
 
+variable "databases" {
+  type = map(object({
+    name                = string
+    location            = optional(string, null)
+    resource_group_name = optional(string, null)
+    cluster_name        = optional(string, null)
+    hot_cache_period    = optional(string)
+    soft_delete_period  = optional(string)
+  }))
+  default     = {}
+  description = <<-DESCRIPTION
+  (Optional) A map of kusto database objects:
+
+  - `name` - (Required) The name of the Kusto Database to create. Changing this forces a new resource to be created.
+  - `location` - (Optional) The location where the Kusto Database should be created. If not provided, will default to the location of the kusto cluster. Changing this forces a new resource to be created.
+  - `resource_group_name` - (Optional) Specifies the Resource Group where the Kusto Database should exist. If not provided, will default to the location of the kusto cluster. Changing this forces a new resource to be created.
+  - `cluster_name` - (Optional) Specifies the name of the Kusto Cluster this database will be added to. If not provided, will default to the location of the kusto cluster. Changing this forces a new resource to be created.
+  - `hot_cache_period` - (Optional) The time the data that should be kept in cache for fast queries as ISO 8601 timespan. Default is unlimited. For more information see: ISO 8601 Timespan.
+  - `soft_delete_period` - (Optional) The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan. Default is unlimited. For more information see: ISO 8601 Timespan
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition = alltrue(
+      [
+        for k in keys(var.databases) : can(regex("^[a-zA-Z0-9- .]{1,260}$", var.databases[k].name))
+      ]
+    )
+    error_message = format("The following database name is not valid. Adjust the database name for the map (must match regex: '^[a-zA-Z0-9- .]{1,260}$'): %s", join(", ",
+      [
+        for k in keys(var.databases) : format("'%s -> %s'", k, var.databases[k].name)
+        if can(regex("^[a-zA-Z0-9- .]{1,260}$", var.databases[k].name)) == false
+      ]
+      )
+    )
+  }
+}
+
 variable "diagnostic_settings" {
   type = map(object({
     name                                     = optional(string, null)

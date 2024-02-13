@@ -99,6 +99,15 @@ run "validation_rules_optional_pass" {
     public_ip_type           = "IPv4"
     trusted_external_tenants = ["*"]
     zones                    = ["1", "2", "3"]
+
+    databases = {
+      crm = {
+        name = "db-crm"
+      }
+      sales = {
+        name = "db-sales"
+      }
+    }
   }
 
   assert {
@@ -160,6 +169,38 @@ run "validation_rules_optional_pass" {
     condition     = var.enable_telemetry ? can(azurerm_management_lock.this[0]) : true
     error_message = "enable_telemetry is not equals to input variable."
   }
+
+  # Database assertions
+  assert {
+    condition = alltrue(
+      [
+        for k in keys(var.databases) :
+        var.databases[k].name == module.kusto_database[k].name
+      ]
+    )
+    error_message = format("Database name does not equals to the input variable. %s", join(", ",
+      [
+        for k in keys(var.databases) : format("'%s -> (should be) %s, got %s'", k, var.databases[k].name, module.kusto_database[k].name)
+        if var.databases[k].name != module.kusto_database[k].name
+      ]
+      )
+    )
+  }
+  assert {
+    condition = alltrue(
+      [
+        for k in keys(var.databases) :
+        var.name == module.kusto_database[k].cluster_name
+      ]
+    )
+    error_message = format("Kusto cluster name does not equals to the one set to the database input variable. %s", join(", ",
+      [
+        for k in keys(var.databases) : format("'%s -> (should be) %s, got %s'", k, var.name, module.kusto_database[k].cluster_name)
+        if var.name != module.kusto_database[k].cluster_name
+      ]
+      )
+    )
+  }
 }
 
 run "validation_rules_fails" {
@@ -191,7 +232,6 @@ run "validation_rules_fails" {
     var.sku,
     var.language_extensions,
     var.lock,
-    var.diagnostic_settings,
-    # var.private_endpoints
+    var.diagnostic_settings
   ]
 }

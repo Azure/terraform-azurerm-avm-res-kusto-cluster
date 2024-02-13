@@ -200,6 +200,32 @@ object({
 
 Default: `{}`
 
+### <a name="input_databases"></a> [databases](#input\_databases)
+
+Description: (Optional) A map of kusto database objects:
+
+- `name` - (Required) The name of the Kusto Database to create. Changing this forces a new resource to be created.
+- `location` - (Optional) The location where the Kusto Database should be created. If not provided, will default to the location of the kusto cluster. Changing this forces a new resource to be created.
+- `resource_group_name` - (Optional) Specifies the Resource Group where the Kusto Database should exist. If not provided, will default to the location of the kusto cluster. Changing this forces a new resource to be created.
+- `cluster_name` - (Optional) Specifies the name of the Kusto Cluster this database will be added to. If not provided, will default to the location of the kusto cluster. Changing this forces a new resource to be created.
+- `hot_cache_period` - (Optional) The time the data that should be kept in cache for fast queries as ISO 8601 timespan. Default is unlimited. For more information see: ISO 8601 Timespan.
+- `soft_delete_period` - (Optional) The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan. Default is unlimited. For more information see: ISO 8601 Timespan
+
+Type:
+
+```hcl
+map(object({
+    name                = string
+    location            = optional(string, null)
+    resource_group_name = optional(string, null)
+    cluster_name        = optional(string, null)
+    hot_cache_period    = optional(string)
+    soft_delete_period  = optional(string)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
 
 Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
@@ -553,7 +579,13 @@ Description: The FQDN of the Azure Kusto Cluster.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_kusto_database"></a> [kusto\_database](#module\_kusto\_database)
+
+Source: ./modules/azurerm_kusto_database
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
