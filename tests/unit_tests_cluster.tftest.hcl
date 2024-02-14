@@ -37,18 +37,6 @@ run "validation_rules_required_pass" {
       name     = "Dev(No SLA)_Standard_D11_v2"
       capacity = 1
     }
-    diagnostic_settings = {
-      operations = {
-        name                        = "Operational logs"
-        workspace_resource_id       = run.setup_dependencies.azurerm_log_analytics_workspace.id
-        storage_account_resource_id = run.setup_dependencies.azurerm_storage_account.id
-      }
-    }
-    private_endpoints = {
-      pip1 = {
-        subnet_resource_id = run.setup_dependencies.azurerm_subnet.id
-      }
-    }
   }
 
   assert {
@@ -99,6 +87,19 @@ run "validation_rules_optional_pass" {
     public_ip_type           = "IPv4"
     trusted_external_tenants = ["*"]
     zones                    = ["1", "2", "3"]
+
+    diagnostic_settings = {
+      operations = {
+        name                        = "Operational logs"
+        workspace_resource_id       = run.setup_dependencies.azurerm_log_analytics_workspace.id
+        storage_account_resource_id = run.setup_dependencies.azurerm_storage_account.id
+      }
+    }
+    private_endpoints = {
+      pip1 = {
+        subnet_resource_id = run.setup_dependencies.azurerm_subnet.id
+      }
+    }
 
     databases = {
       crm = {

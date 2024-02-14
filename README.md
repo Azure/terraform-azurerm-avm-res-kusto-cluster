@@ -24,7 +24,7 @@ Things to do:
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.88.0)
 
@@ -230,16 +230,16 @@ Default: `{}`
 
 Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
-- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
 - `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
 - `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
+- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
+- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
+- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
 - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
+- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
+- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
+- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
 
 Type:
 
@@ -285,6 +285,30 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_kusto_cluster_principal_assignments"></a> [kusto\_cluster\_principal\_assignments](#input\_kusto\_cluster\_principal\_assignments)
+
+Description: A map that manages a Kusto Cluster Principal Assignment.
+
+- `name` (Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created.
+- `principal_id` (Required) The object id of the principal. Changing this forces a new resource to be created.
+- `principal_type` (Required) The type of the principal. Valid values include App, Group, User. Changing this forces a new resource to be created.
+- `role` (Required) The cluster role assigned to the principal. Valid values include AllDatabasesAdmin and AllDatabasesViewer. Changing this forces a new resource to be created.
+- `tenant_id` (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
+
+Type:
+
+```hcl
+map(object({
+    name           = string
+    principal_id   = string
+    principal_type = string
+    role           = string
+    tenant_id      = string
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_language_extensions"></a> [language\_extensions](#input\_language\_extensions)
 
@@ -580,6 +604,12 @@ Description: The FQDN of the Azure Kusto Cluster.
 ## Modules
 
 The following Modules are called:
+
+### <a name="module_kusto_cluster_principal_assignment"></a> [kusto\_cluster\_principal\_assignment](#module\_kusto\_cluster\_principal\_assignment)
+
+Source: ./modules/azurerm_kusto_cluster_principal_assignment
+
+Version:
 
 ### <a name="module_kusto_database"></a> [kusto\_database](#module\_kusto\_database)
 

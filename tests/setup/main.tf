@@ -10,7 +10,7 @@ resource "azurerm_virtual_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 output "azurerm_resource_group" {
-  value = azurerm_resource_group.example.id
+  value = azurerm_resource_group.example
 }
 
 resource "azurerm_subnet" "example" {
@@ -51,3 +51,13 @@ output "azurerm_storage_account" {
   }
 }
 
+data "azurerm_client_config" "current" {}
+output "client_config" {
+  value = {
+    client_id       = data.azurerm_client_config.current.client_id
+    tenant_id       = data.azurerm_client_config.current.tenant_id
+    subscription_id = data.azurerm_client_config.current.subscription_id
+    object_id       = data.azurerm_client_config.current.object_id
+    principal_type  = "App"
+  }
+}

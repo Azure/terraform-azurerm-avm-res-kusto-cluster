@@ -256,17 +256,17 @@ variable "diagnostic_settings" {
   description = <<-DESCRIPTION
   A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
-  - `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-  - `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-  - `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-  - `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-  - `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-  - `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-  - `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
   - `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
   - `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
+  - `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
+  - `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
+  - `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
   - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
-DESCRIPTION
+  - `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
+  - `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
+  - `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
+  - `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
+  DESCRIPTION
   nullable    = false
 
   validation {
@@ -304,6 +304,50 @@ variable "enable_telemetry" {
   For more information see <https://aka.ms/avm/telemetryinfo>.
   If it is set to false, then no telemetry will be collected.
   DESCRIPTION
+}
+
+variable "kusto_cluster_principal_assignments" {
+  type = map(object({
+    name           = string
+    principal_id   = string
+    principal_type = string
+    role           = string
+    tenant_id      = string
+  }))
+  default     = {}
+  description = <<-DESCRIPTION
+  A map that manages a Kusto Cluster Principal Assignment.
+
+  - `name` (Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created.
+  - `principal_id` (Required) The object id of the principal. Changing this forces a new resource to be created.
+  - `principal_type` (Required) The type of the principal. Valid values include App, Group, User. Changing this forces a new resource to be created.
+  - `role` (Required) The cluster role assigned to the principal. Valid values include AllDatabasesAdmin and AllDatabasesViewer. Changing this forces a new resource to be created.
+  - `tenant_id` (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition = alltrue(
+      [for _, v in var.kusto_cluster_principal_assignments : contains(["App", "Group", "User"], v.principal_type)]
+    )
+    error_message = format("Only the following values are authorised: 'App', 'Group' or 'User'. Fix the value you have set to: [%s]", join(", ",
+      setsubtract(
+        [for _, v in var.kusto_cluster_principal_assignments : v.principal_type],
+        ["App", "Group", "User"]
+      ))
+    )
+  }
+  validation {
+    condition = alltrue(
+      [for _, v in var.kusto_cluster_principal_assignments : contains(["AllDatabasesAdmin", "AllDatabasesViewer"], v.role)]
+    )
+    error_message = format("Only the following values are authorised: 'AllDatabasesAdmin' or 'AllDatabasesViewer'. Fix the value you have set to: [%s]", join(", ",
+      setsubtract(
+        [for _, v in var.kusto_cluster_principal_assignments : v.role],
+        ["AllDatabasesAdmin", "AllDatabasesViewer"]
+      ))
+    )
+  }
 }
 
 variable "language_extensions" {
