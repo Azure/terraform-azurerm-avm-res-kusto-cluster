@@ -350,6 +350,52 @@ variable "kusto_cluster_principal_assignments" {
   }
 }
 
+variable "kusto_database_principal_assignment" {
+  type = map(object({
+    database_name  = string
+    name           = string
+    principal_id   = string
+    principal_type = string
+    role           = string
+    tenant_id      = string
+  }))
+  default     = {}
+  description = <<-DESCRIPTION
+  A map that manages a Kusto (also known as Azure Data Explorer) Database Principal Assignment.
+
+  - `database_name` (Required) The name of the database in which to create the resource. Changing this forces a new resource to be created.
+  - `name` (Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created.
+  - `principal_id` (Required) The object id of the principal. Changing this forces a new resource to be created.
+  - `principal_type` (Required) The type of the principal. Valid values include App, Group, User. Changing this forces a new resource to be created.
+  - `role` (Required) The cluster role assigned to the principal. Valid values include AllDatabasesAdmin and AllDatabasesViewer. Changing this forces a new resource to be created.
+  - `tenant_id` (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition = alltrue(
+      [for _, v in var.kusto_database_principal_assignment : contains(["App", "Group", "User"], v.principal_type)]
+    )
+    error_message = format("Only the following values are authorised: 'App', 'Group' or 'User'. Fix the value you have set to: [%s]", join(", ",
+      setsubtract(
+        [for _, v in var.kusto_database_principal_assignment : v.principal_type],
+        ["App", "Group", "User"]
+      ))
+    )
+  }
+  validation {
+    condition = alltrue(
+      [for _, v in var.kusto_database_principal_assignment : contains(["Admin", "Ingestor", "Monitor", "UnrestrictedViewer", "User", "Viewer"], v.role)]
+    )
+    error_message = format("Only the following values are authorised: 'Admin', 'Ingestor', 'Monitor', 'UnrestrictedViewer', 'User' or 'Viewer'. Fix the value you have set to: [%s]", join(", ",
+      setsubtract(
+        [for _, v in var.kusto_database_principal_assignment : v.role],
+        ["Admin", "Ingestor", "Monitor", "UnrestrictedViewer", "User", "Viewer"]
+      ))
+    )
+  }
+}
+
 variable "language_extensions" {
   type        = set(string)
   default     = null

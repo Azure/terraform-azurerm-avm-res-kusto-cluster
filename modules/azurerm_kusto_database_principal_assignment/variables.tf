@@ -1,3 +1,8 @@
+variable "database_name" {
+  type        = string
+  description = "(Required) The name of the database in which to create the resource. Changing this forces a new resource to be created."
+}
+
 variable "cluster_name" {
   type        = string
   description = "(Required) The name of the cluster in which to create the resource. Changing this forces a new resource to be created."
@@ -37,12 +42,12 @@ variable "resource_group_name" {
 
 variable "role" {
   type        = string
-  description = "(Required) The cluster role assigned to the principal. Valid values include AllDatabasesAdmin and AllDatabasesViewer. Changing this forces a new resource to be created."
+  description = "(Required) The database role assigned to the principal. Valid values include Admin, Ingestor, Monitor, UnrestrictedViewer, User and Viewer. Changing this forces a new resource to be created."
 
   validation {
-    condition = contains(["AllDatabasesAdmin", "AllDatabasesViewer"], var.role)
-    error_message = format("Only the following values are authorised: 'AllDatabasesAdmin' or 'AllDatabasesViewer'. Fix the value you have set to: [%s]", join(", ",
-      setsubtract([var.role], ["AllDatabasesAdmin", "AllDatabasesViewer"]))
+    condition = contains(["Admin", "Ingestor", "Monitor", "UnrestrictedViewer", "User", "Viewer"], var.role)
+    error_message = format("Only the following values are authorised: 'Admin', 'Ingestor', 'Monitor', 'UnrestrictedViewer', 'User' or 'Viewer'. Fix the value you have set to: [%s]", join(", ",
+      setsubtract([var.role], ["Admin", "Ingestor", "Monitor", "UnrestrictedViewer", "User", "Viewer"]))
     )
   }
 }

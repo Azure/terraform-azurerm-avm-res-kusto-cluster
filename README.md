@@ -310,6 +310,32 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_kusto_database_principal_assignment"></a> [kusto\_database\_principal\_assignment](#input\_kusto\_database\_principal\_assignment)
+
+Description: A map that manages a Kusto (also known as Azure Data Explorer) Database Principal Assignment.
+
+- `database_name` (Required) The name of the database in which to create the resource. Changing this forces a new resource to be created.
+- `name` (Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created.
+- `principal_id` (Required) The object id of the principal. Changing this forces a new resource to be created.
+- `principal_type` (Required) The type of the principal. Valid values include App, Group, User. Changing this forces a new resource to be created.
+- `role` (Required) The cluster role assigned to the principal. Valid values include AllDatabasesAdmin and AllDatabasesViewer. Changing this forces a new resource to be created.
+- `tenant_id` (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
+
+Type:
+
+```hcl
+map(object({
+    database_name  = string
+    name           = string
+    principal_id   = string
+    principal_type = string
+    role           = string
+    tenant_id      = string
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_language_extensions"></a> [language\_extensions](#input\_language\_extensions)
 
 Description: (Optional) An list of language\_extensions to enable.   
@@ -614,6 +640,12 @@ Version:
 ### <a name="module_kusto_database"></a> [kusto\_database](#module\_kusto\_database)
 
 Source: ./modules/azurerm_kusto_database
+
+Version:
+
+### <a name="module_kusto_database_principal_assignment"></a> [kusto\_database\_principal\_assignment](#module\_kusto\_database\_principal\_assignment)
+
+Source: ./modules/azurerm_kusto_database_principal_assignment
 
 Version:
 
