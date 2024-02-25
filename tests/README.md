@@ -1,6 +1,7 @@
 # Tests
 
-Create tests in the provided subdirectories.
+## Unit tests
+
 
 To execute the unit tests
 ```bash
@@ -15,4 +16,13 @@ terraform test --verbose -filter=tests/unit_tests_cluster_principal_assignment.t
 
 # kusto_database_principal_assignment
 terraform test --verbose -filter=tests/unit_tests_database_principal_assignment.tftest.hcl
+```
+
+## Integration tests
+
+Note Integration tests are deploying resources in real Azure subscription and will take time to complete. 
+
+```bash
+terraform test --verbose -filter=tests/integration_tests_cluster.tftest.hcl
+
 ```
