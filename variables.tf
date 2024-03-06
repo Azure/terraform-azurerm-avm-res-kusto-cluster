@@ -1,3 +1,4 @@
+# tflint-ignore: terraform_unused_declarations
 variable "name" {
   type        = string
   description = "The name of the this resource."
@@ -8,11 +9,13 @@ variable "name" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "resource_group_name" {
   type        = string
   description = "The resource group where the resources will be deployed."
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "sku" {
   type = object({
     name     = string
@@ -201,6 +204,7 @@ variable "customer_managed_key" {
   description = "Customer managed keys that should be associated with the resource."
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "databases" {
   type = map(object({
     name                = string
@@ -239,6 +243,7 @@ variable "databases" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "diagnostic_settings" {
   type = map(object({
     name                                     = optional(string, null)
@@ -296,6 +301,7 @@ variable "double_encryption_enabled" {
   description = "(Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created."
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "enable_telemetry" {
   type        = bool
   default     = true
@@ -421,6 +427,7 @@ variable "language_extensions" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "location" {
   type        = string
   default     = null
@@ -442,6 +449,7 @@ variable "lock" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "managed_identities" {
   type = object({
     type                       = string
@@ -456,6 +464,7 @@ variable "managed_identities" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "optimized_auto_scale" {
   type = object({
     maximum_instances = number
@@ -472,15 +481,21 @@ variable "optimized_auto_scale" {
 
   validation {
     condition = var.optimized_auto_scale == null ? true : (
-      var.optimized_auto_scale.maximum_instances >= 0 && var.optimized_auto_scale.maximum_instances <= 1000
+      var.optimized_auto_scale.maximum_instances >= 2 && var.optimized_auto_scale.maximum_instances <= 1000
     )
-    error_message = "The maximum number of allowed instances. Must between 0 and 1000."
+    error_message = "The maximum number of allowed instances. Must between 2 and 1000."
   }
   validation {
     condition = var.optimized_auto_scale == null ? true : (
-      var.optimized_auto_scale.minimum_instances >= 0 && var.optimized_auto_scale.minimum_instances <= 1000
+      var.optimized_auto_scale.minimum_instances >= 2 && var.optimized_auto_scale.minimum_instances <= 1000
     )
-    error_message = "The minimum number of allowed instances. Must between 0 and 1000."
+    error_message = "The minimum number of allowed instances. Must between 2 and 1000."
+  }
+  validation {
+    condition = var.optimized_auto_scale == null ? true : (
+      var.optimized_auto_scale.maximum_instances > var.optimized_auto_scale.minimum_instances
+    )
+    error_message = "The maximum number of instances should be greater than the minimum number."
   }
 }
 
@@ -496,6 +511,7 @@ variable "outbound_network_access_restricted" {
   nullable    = false
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "private_endpoints" {
   type = map(object({
     name = optional(string, null)
@@ -573,6 +589,7 @@ variable "purge_enabled" {
   description = "(Optional) Specifies if the purge operations are enabled."
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "role_assignments" {
   type = map(object({
     role_definition_id_or_name             = string
