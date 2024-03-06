@@ -1,5 +1,18 @@
 <!-- BEGIN_TF_DOCS -->
+# Example with database, private endpoint and diagnostic provfile
 
+This example shows how to deploy the module with a private endpoint connection.
+We have also included kusto databases and a diagnostic profile.
+
+To run that test
+
+```shell
+terraform -chdir=examples/cluster_with_databases init
+
+terraform -chdir=examples/cluster_with_databases plan -var-file terraform.tfvars
+
+terraform -chdir=examples/cluster_with_databases apply -var-file terraform.tfvars
+```
 
 ```hcl
 terraform {
@@ -760,4 +773,14 @@ Source: Azure/regions/azurerm
 
 Version: >= 0.3
 
+<!-- markdownlint-disable-next-line MD041 -->
+## Data Collection
+
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+
+You can opt-out by setting the variable
+
+```hcl
+enable_telemetry = false
+```
 <!-- END_TF_DOCS -->

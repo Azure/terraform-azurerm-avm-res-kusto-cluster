@@ -1,16 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-azurerm-avm-template
+# terraform-azurerm-avm-res-kusto-cluster
 
-This is a template repo for Terraform Azure Verified Modules.
-
-Things to do:
-
-1. Set up a GitHub repo environment called `test`.
-1. Configure environment protection rule to ensure that approval is required before deploying to this environment.
-1. Create a user-assigned managed identity in your test subscription.
-1. Create a role assignment for the managed identity on your test subscription, use the minimum required role.
-1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
-1. Search and update TODOs within the code and remove the TODO comments once complete.
+Manages a Kusto (also known as Azure Data Explorer) Cluster and databases
 
 > [!IMPORTANT]
 > As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
@@ -653,4 +644,10 @@ Version:
 ## Data Collection
 
 The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+
+You can opt-out by setting the variable
+
+```hcl
+enable_telemetry = false
+```
 <!-- END_TF_DOCS -->
