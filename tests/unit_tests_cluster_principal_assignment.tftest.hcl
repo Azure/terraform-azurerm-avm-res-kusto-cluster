@@ -1,10 +1,10 @@
 mock_provider "azurerm" {
-  source = "tests/mock_data"
+  source = "tests/setup/mock_data"
 }
 
 run "setup_dependencies" {
   module {
-    source = "./tests/setup"
+    source = "./tests/setup/dependencies"
   }
 }
 

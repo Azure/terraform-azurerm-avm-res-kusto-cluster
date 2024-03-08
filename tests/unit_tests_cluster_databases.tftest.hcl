@@ -1,10 +1,10 @@
 mock_provider "azurerm" {
-  source = "tests/mock_data"
+  source = "tests/setup/mock_data"
 }
 
 run "setup_dependencies" {
   module {
-    source = "./tests/setup"
+    source = "./tests/setup/dependencies"
   }
 
   override_resource {
@@ -60,7 +60,7 @@ run "validation_rules_required_pass" {
   }
 }
 
-run "validation_rules_optional_pass" {
+run "deploy_cluster_database_and_other_optional" {
   variables {
     name                = "demo"
     resource_group_name = "demo"
@@ -208,22 +208,22 @@ run "validation_rules_fails" {
   command = plan
 
   variables {
-    name                = "de"
+    name                = "de" # Invalid name
     resource_group_name = "demo"
     location            = "southeastasia"
     sku = {
-      name     = "Dev(No SLA)_Standard_D11_v20"
+      name     = "Dev(No SLA)_Standard_D11_v20" # Invalid SKU name
       capacity = 1
     }
     enable_telemetry    = false
-    language_extensions = ["PYTHONXXX", "Y"]
+    language_extensions = ["PYTHONXXX", "Y"] # Invalid language extensions
     lock = {
       name = "Lock. name"
-      kind = "Fails"
+      kind = "Fails" # Invalid lock kind
     }
     diagnostic_settings = {
       operations = {
-        name = "Operational logs"
+        name = "Operational logs" # Invalid diagnostic settings name
       }
     }
   }

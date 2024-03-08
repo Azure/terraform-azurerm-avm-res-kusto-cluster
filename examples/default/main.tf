@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.3.0"
+  required_version = ">= 1.7.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -21,10 +21,10 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = ">= 0.3.0"
+  version = ">= 0.3"
 }
 
-# This allows us to randomize the region for the resource group.
+# example allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
   max = length(module.regions.regions) - 1
   min = 0
@@ -34,11 +34,11 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = ">= 0.3.0"
+  version = ">= 0.3"
 }
 
 # This is required for resource modules
-resource "azurerm_resource_group" "this" {
+resource "azurerm_resource_group" "example" {
   location = module.regions.regions[random_integer.region_index.result].name
   name     = module.naming.resource_group.name_unique
   tags = {
@@ -46,15 +46,26 @@ resource "azurerm_resource_group" "this" {
   }
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
-# module "test" {
-#   source = "../../"
-#   # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-#   # ...
-#   enable_telemetry    = var.enable_telemetry # see variables.tf
-#   name                = module.naming.kusto_cluster.                 # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
-#   resource_group_name = azurerm_resource_group.this.name
-# }
+module "kusto" {
+  source = "../../"
+  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
+  # ...
+  enable_telemetry    = false # Disabled for testing. 
+  location            = azurerm_resource_group.example.location
+  name                = module.naming.kusto_cluster.name_unique
+  resource_group_name = azurerm_resource_group.example.name
+
+  sku = {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  databases = {
+    crm = {
+      name               = "crm"
+      hot_cache_period   = "P30D"
+      soft_delete_period = "P30D"
+    }
+  }
+
+}
