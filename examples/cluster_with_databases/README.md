@@ -120,7 +120,10 @@ module "kusto" {
   virtual_network_configuration       = var.virtual_network_configuration
   double_encryption_enabled           = var.double_encryption_enabled
   zones                               = var.zones
-  sku                                 = var.sku
+  sku = {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
 
   databases = {
     crm = {
@@ -200,103 +203,7 @@ The following resources are used by this module:
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
 
-The following input variables are required:
-
-### <a name="input_name"></a> [name](#input\_name)
-
-Description: The name of the this resource.
-
-Type: `string`
-
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: The resource group where the resources will be deployed.
-
-Type: `string`
-
-### <a name="input_sku"></a> [sku](#input\_sku)
-
-Description: A sku block supports the following:
-
-name - (Required) The name of the SKU.   
-
-Possible values are:
-- Dev(No SLA)\_Standard\_D11\_v2,
-- Dev(No SLA)\_Standard\_E2a\_v4,
-- Standard\_D14\_v2,
-- Standard\_D11\_v2,
-- Standard\_D16d\_v5,
-- Standard\_D13\_v2,
-- Standard\_D12\_v2,
-- Standard\_DS14\_v2+4TB\_PS,
-- Standard\_DS14\_v2+3TB\_PS,
-- Standard\_DS13\_v2+1TB\_PS,
-- Standard\_DS13\_v2+2TB\_PS,
-- Standard\_D32d\_v5,
-- Standard\_D32d\_v4,
-- Standard\_EC8ads\_v5,
-- Standard\_EC8as\_v5+1TB\_PS,
-- Standard\_EC8as\_v5+2TB\_PS,
-- Standard\_EC16ads\_v5,
-- Standard\_EC16as\_v5+4TB\_PS,
-- Standard\_EC16as\_v5+3TB\_PS,
-- Standard\_E80ids\_v4,
-- Standard\_E8a\_v4,
-- Standard\_E8ads\_v5,
-- Standard\_E8as\_v5+1TB\_PS,
-- Standard\_E8as\_v5+2TB\_PS,
-- Standard\_E8as\_v4+1TB\_PS,
-- Standard\_E8as\_v4+2TB\_PS,
-- Standard\_E8d\_v5,
-- Standard\_E8d\_v4,
-- Standard\_E8s\_v5+1TB\_PS,
-- Standard\_E8s\_v5+2TB\_PS,
-- Standard\_E8s\_v4+1TB\_PS,
-- Standard\_E8s\_v4+2TB\_PS,
-- Standard\_E4a\_v4,
-- Standard\_E4ads\_v5,
-- Standard\_E4d\_v5,
-- Standard\_E4d\_v4,
-- Standard\_E16a\_v4,
-- Standard\_E16ads\_v5,
-- Standard\_E16as\_v5+4TB\_PS,
-- Standard\_E16as\_v5+3TB\_PS,
-- Standard\_E16as\_v4+4TB\_PS,
-- Standard\_E16as\_v4+3TB\_PS,
-- Standard\_E16d\_v5,
-- Standard\_E16d\_v4,
-- Standard\_E16s\_v5+4TB\_PS,
-- Standard\_E16s\_v5+3TB\_PS,
-- Standard\_E16s\_v4+4TB\_PS,
-- Standard\_E16s\_v4+3TB\_PS,
-- Standard\_E64i\_v3,
-- Standard\_E2a\_v4,
-- Standard\_E2ads\_v5,
-- Standard\_E2d\_v5,
-- Standard\_E2d\_v4,
-- Standard\_L8as\_v3,
-- Standard\_L8s,
-- Standard\_L8s\_v3,
-- Standard\_L8s\_v2,
-- Standard\_L4s,
-- Standard\_L16as\_v3,
-- Standard\_L16s,
-- Standard\_L16s\_v3,
-- Standard\_L16s\_v2,
-- Standard\_L32as\_v3
-- Standard\_L32s\_v3  
-capacity - (Optional) Specifies the node count for the cluster. Boundaries depend on the SKU name.  
-NOTE:  
-If no optimized\_auto\_scale block is defined, then the capacity is required. ~> NOTE: If an optimized\_auto\_scale block is defined and no capacity is set, then the capacity is initially set to the value of minimum\_instances.
-
-Type:
-
-```hcl
-object({
-    name     = string
-    capacity = number
-  })
-```
+No required inputs.
 
 ## Optional Inputs
 

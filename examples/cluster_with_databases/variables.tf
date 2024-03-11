@@ -1,4 +1,3 @@
-
 variable "allowed_fqdns" {
   type        = set(string)
   default     = null
