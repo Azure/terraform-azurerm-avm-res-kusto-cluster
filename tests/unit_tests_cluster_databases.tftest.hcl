@@ -8,19 +8,19 @@ run "setup_dependencies" {
   }
 
   override_resource {
-    target = azurerm_subnet.example
+    target = azurerm_subnet.this
     values = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
     }
   }
   override_resource {
-    target = azurerm_log_analytics_workspace.example
+    target = azurerm_log_analytics_workspace.this
     values = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.OperationalInsights/workspaces/workspace"
     }
   }
   override_resource {
-    target = azurerm_storage_account.example
+    target = azurerm_storage_account.this
     values = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.Storage/storageAccounts/myaccount"
     }
@@ -81,8 +81,8 @@ run "deploy_cluster_database_and_other_optional" {
       type = "SystemAssigned, UserAssigned"
     }
     optimized_auto_scale = {
-      minimum_instances = 50
-      maximum_instances = 2
+      minimum_instances = 2
+      maximum_instances = 50
     }
     public_ip_type           = "IPv4"
     trusted_external_tenants = ["*"]

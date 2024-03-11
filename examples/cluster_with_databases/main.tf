@@ -103,7 +103,10 @@ module "kusto" {
   virtual_network_configuration       = var.virtual_network_configuration
   double_encryption_enabled           = var.double_encryption_enabled
   zones                               = var.zones
-  sku                                 = var.sku
+  sku                                 = {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
 
   databases = {
     crm = {
