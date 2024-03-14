@@ -82,7 +82,7 @@ resource "azurerm_storage_account" "example" {
 
 module "kusto" {
   source = "../../"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
+  # source             = "Azure/avm-res-kusto-cluster/azurerm"
   # ...
   enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location

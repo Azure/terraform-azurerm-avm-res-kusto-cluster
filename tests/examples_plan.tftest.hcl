@@ -17,6 +17,11 @@ run "examples_plan" {
     name                = run.setup.naming.kusto_cluster.name_unique
     private_endpoints   = run.setup.private_endpoints
     resource_group_name = run.setup.azurerm_resource_group.name
+
+    sku = {
+      name     = "Dev(No SLA)_Standard_D11_v2"
+      capacity = 1
+    }
   }
   # make sure you reference the -var-file from the examples folders to inject the configuration
   # terraform test --verbose -filter=tests/examples_plan.tftest.hcl -var-file examples/cluster_with_databases/terraform.tfvars
