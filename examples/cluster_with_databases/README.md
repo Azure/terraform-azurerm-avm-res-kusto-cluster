@@ -1,14 +1,178 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-azurerm-avm-res-kusto-cluster
+# Example with database, private endpoint and diagnostic provfile
 
-Manages a Kusto (also known as Azure Data Explorer) Cluster and databases
+This example shows how to deploy the module with a private endpoint connection.
+We have also included kusto databases and a diagnostic profile.
 
-> [!IMPORTANT]
-> As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
->
-> All module **MUST** be published as a pre-release version (e.g., `0.1.0`, `0.1.1`, `0.2.0`, etc.) until the AVM framework becomes GA.
->
-> However, it is important to note that this **DOES NOT** mean that the modules cannot be consumed and utilized. They **CAN** be leveraged in all types of environments (dev, test, prod etc.). Consumers can treat them just like any other IaC module and raise issues or feature requests against them as they learn from the usage of the module. Consumers should also read the release notes for each version, if considering updating to a more recent version of a module to see if there are any considerations or breaking changes etc.
+To run that test
+
+```shell
+terraform -chdir=examples/cluster_with_databases init
+
+terraform -chdir=examples/cluster_with_databases plan -var-file terraform.tfvars
+
+terraform -chdir=examples/cluster_with_databases apply -var-file terraform.tfvars
+```
+
+```hcl
+terraform {
+  required_version = ">= 1.7.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.7.0, < 4.0.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.5.0, < 4.0.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+
+## Section to provide a random Azure region for the resource group
+# This allows us to randomize the region for the resource group.
+module "regions" {
+  source  = "Azure/regions/azurerm"
+  version = ">= 0.3"
+}
+
+# example allows us to randomize the region for the resource group.
+resource "random_integer" "region_index" {
+  max = length(module.regions.regions) - 1
+  min = 0
+}
+## End of section to provide a random Azure region for the resource group
+
+# This ensures we have unique CAF compliant names for our resources.
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = ">= 0.3"
+}
+
+# This is required for resource modules
+resource "azurerm_resource_group" "example" {
+  location = module.regions.regions[random_integer.region_index.result].name
+  name     = module.naming.resource_group.name_unique
+  tags = {
+    module = "kusto-cluster"
+  }
+}
+
+resource "azurerm_virtual_network" "example" {
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  name                = "example-vnet"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  address_prefixes     = ["10.0.1.0/24"]
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = azurerm_resource_group.example.name
+  retention_in_days   = 30
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_storage_account" "example" {
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+  location                 = azurerm_resource_group.example.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = azurerm_resource_group.example.name
+}
+
+module "kusto" {
+  source = "../../"
+  # source             = "Azure/avm-res-kusto-cluster/azurerm"
+  # ...
+  enable_telemetry    = false # Disabled for testing. 
+  location            = azurerm_resource_group.example.location
+  name                = module.naming.kusto_cluster.name_unique
+  resource_group_name = azurerm_resource_group.example.name
+
+  allowed_fqdns                       = var.allowed_fqdns
+  allowed_ip_ranges                   = var.allowed_ip_ranges
+  auto_stop_enabled                   = var.auto_stop_enabled
+  disk_encryption_enabled             = var.disk_encryption_enabled
+  kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
+  kusto_database_principal_assignment = var.kusto_database_principal_assignment
+  language_extensions                 = var.language_extensions
+  lock                                = var.lock
+  outbound_network_access_restricted  = var.outbound_network_access_restricted
+  public_ip_type                      = var.public_ip_type
+  public_network_access_enabled       = var.public_network_access_enabled
+  purge_enabled                       = var.purge_enabled
+  streaming_ingestion_enabled         = var.streaming_ingestion_enabled
+  tags                                = var.tags
+  trusted_external_tenants            = var.trusted_external_tenants
+  virtual_network_configuration       = var.virtual_network_configuration
+  double_encryption_enabled           = var.double_encryption_enabled
+  zones                               = var.zones
+  sku = {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  databases = {
+    crm = {
+      name               = "crm"
+      hot_cache_period   = "P30D"
+      soft_delete_period = "P30D"
+    }
+  }
+
+  managed_identities = {
+    type = "SystemAssigned"
+  }
+  # optimized_auto_scale = {
+  #   minimum_instances = 2
+  #   maximum_instances = 10
+  # }
+
+  diagnostic_settings = {
+    operations = {
+      name                        = "Operational logs"
+      workspace_resource_id       = azurerm_log_analytics_workspace.example.id
+      storage_account_resource_id = azurerm_storage_account.example.id
+    }
+  }
+  private_endpoints = {
+    pip1 = {
+      subnet_resource_id = azurerm_subnet.example.id
+    }
+  }
+
+}
+
+# Call the kusto_database submodule directlty and reference the existing kusto cluster
+module "kusto_database" {
+  source = "../..//modules/azurerm_kusto_database"
+  # source             = "Azure/avm-<res/ptn>-<name>/azurerm//modules/azurerm_kusto_database"
+  # ...
+  location            = module.kusto.resource.location
+  name                = module.naming.kusto_database.name_unique
+  resource_group_name = module.kusto.resource.resource_group_name
+  cluster_name        = module.kusto.resource.name
+  hot_cache_period    = "P455D"
+  soft_delete_period  = "P1D"
+}
+```
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -17,131 +181,33 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.7.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.88.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.88.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
 
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0)
+- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
 
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_kusto_cluster.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kusto_cluster) (resource)
-- [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
-- [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
-- [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-- [random_id.telem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
+- [azurerm_log_analytics_workspace.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
+- [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_storage_account.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) (resource)
+- [azurerm_subnet.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_virtual_network.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
+- [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
 
-The following input variables are required:
-
-### <a name="input_name"></a> [name](#input\_name)
-
-Description: The name of the this resource.
-
-Type: `string`
-
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: The resource group where the resources will be deployed.
-
-Type: `string`
-
-### <a name="input_sku"></a> [sku](#input\_sku)
-
-Description: A sku block supports the following:
-
-name - (Required) The name of the SKU.   
-
-Possible values are:
-- Dev(No SLA)\_Standard\_D11\_v2,
-- Dev(No SLA)\_Standard\_E2a\_v4,
-- Standard\_D14\_v2,
-- Standard\_D11\_v2,
-- Standard\_D16d\_v5,
-- Standard\_D13\_v2,
-- Standard\_D12\_v2,
-- Standard\_DS14\_v2+4TB\_PS,
-- Standard\_DS14\_v2+3TB\_PS,
-- Standard\_DS13\_v2+1TB\_PS,
-- Standard\_DS13\_v2+2TB\_PS,
-- Standard\_D32d\_v5,
-- Standard\_D32d\_v4,
-- Standard\_EC8ads\_v5,
-- Standard\_EC8as\_v5+1TB\_PS,
-- Standard\_EC8as\_v5+2TB\_PS,
-- Standard\_EC16ads\_v5,
-- Standard\_EC16as\_v5+4TB\_PS,
-- Standard\_EC16as\_v5+3TB\_PS,
-- Standard\_E80ids\_v4,
-- Standard\_E8a\_v4,
-- Standard\_E8ads\_v5,
-- Standard\_E8as\_v5+1TB\_PS,
-- Standard\_E8as\_v5+2TB\_PS,
-- Standard\_E8as\_v4+1TB\_PS,
-- Standard\_E8as\_v4+2TB\_PS,
-- Standard\_E8d\_v5,
-- Standard\_E8d\_v4,
-- Standard\_E8s\_v5+1TB\_PS,
-- Standard\_E8s\_v5+2TB\_PS,
-- Standard\_E8s\_v4+1TB\_PS,
-- Standard\_E8s\_v4+2TB\_PS,
-- Standard\_E4a\_v4,
-- Standard\_E4ads\_v5,
-- Standard\_E4d\_v5,
-- Standard\_E4d\_v4,
-- Standard\_E16a\_v4,
-- Standard\_E16ads\_v5,
-- Standard\_E16as\_v5+4TB\_PS,
-- Standard\_E16as\_v5+3TB\_PS,
-- Standard\_E16as\_v4+4TB\_PS,
-- Standard\_E16as\_v4+3TB\_PS,
-- Standard\_E16d\_v5,
-- Standard\_E16d\_v4,
-- Standard\_E16s\_v5+4TB\_PS,
-- Standard\_E16s\_v5+3TB\_PS,
-- Standard\_E16s\_v4+4TB\_PS,
-- Standard\_E16s\_v4+3TB\_PS,
-- Standard\_E64i\_v3,
-- Standard\_E2a\_v4,
-- Standard\_E2ads\_v5,
-- Standard\_E2d\_v5,
-- Standard\_E2d\_v4,
-- Standard\_L8as\_v3,
-- Standard\_L8s,
-- Standard\_L8s\_v3,
-- Standard\_L8s\_v2,
-- Standard\_L4s,
-- Standard\_L16as\_v3,
-- Standard\_L16s,
-- Standard\_L16s\_v3,
-- Standard\_L16s\_v2,
-- Standard\_L32as\_v3
-- Standard\_L32s\_v3  
-capacity - (Optional) Specifies the node count for the cluster. Boundaries depend on the SKU name.  
-NOTE:  
-If no optimized\_auto\_scale block is defined, then the capacity is required. ~> NOTE: If an optimized\_auto\_scale block is defined and no capacity is set, then the capacity is initially set to the value of minimum\_instances.
-
-Type:
-
-```hcl
-object({
-    name     = string
-    capacity = number
-  })
-```
+No required inputs.
 
 ## Optional Inputs
 
@@ -588,60 +654,44 @@ Default: `null`
 
 ## Outputs
 
-The following outputs are exported:
-
-### <a name="output_data_ingestion_uri"></a> [data\_ingestion\_uri](#output\_data\_ingestion\_uri)
-
-Description: The Kusto Cluster URI to be used for data ingestion.
-
-### <a name="output_id"></a> [id](#output\_id)
-
-Description: The Kusto Cluster ID.
-
-### <a name="output_identity"></a> [identity](#output\_identity)
-
-Description: An identity block exports the following:
-
-principal\_id - The Principal ID associated with this System Assigned Managed Service Identity.
-
-tenant\_id - The Tenant ID associated with this System Assigned Managed Service Identity.
-
-### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
-
-Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
-
-### <a name="output_resource"></a> [resource](#output\_resource)
-
-Description: This is the full output for the resource.
-
-### <a name="output_uri"></a> [uri](#output\_uri)
-
-Description: The FQDN of the Azure Kusto Cluster.
+No outputs.
 
 ## Modules
 
 The following Modules are called:
 
-### <a name="module_kusto_cluster_principal_assignment"></a> [kusto\_cluster\_principal\_assignment](#module\_kusto\_cluster\_principal\_assignment)
+### <a name="module_kusto"></a> [kusto](#module\_kusto)
 
-Source: ./modules/azurerm_kusto_cluster_principal_assignment
+Source: ../../
 
 Version:
 
 ### <a name="module_kusto_database"></a> [kusto\_database](#module\_kusto\_database)
 
-Source: ./modules/azurerm_kusto_database
+Source: ../..//modules/azurerm_kusto_database
 
 Version:
 
-### <a name="module_kusto_database_principal_assignment"></a> [kusto\_database\_principal\_assignment](#module\_kusto\_database\_principal\_assignment)
+### <a name="module_naming"></a> [naming](#module\_naming)
 
-Source: ./modules/azurerm_kusto_database_principal_assignment
+Source: Azure/naming/azurerm
 
-Version:
+Version: >= 0.3
+
+### <a name="module_regions"></a> [regions](#module\_regions)
+
+Source: Azure/regions/azurerm
+
+Version: >= 0.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 
 The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+
+You can opt-out by setting the variable
+
+```hcl
+enable_telemetry = false
+```
 <!-- END_TF_DOCS -->

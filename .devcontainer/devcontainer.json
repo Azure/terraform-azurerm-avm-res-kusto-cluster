@@ -1,5 +1,5 @@
 {
-  "image": "mcr.microsoft.com/azterraform:latest",
+  "image": "ubuntu",
 
   "runArgs": [
 		"--cap-add=SYS_PTRACE",
@@ -10,6 +10,12 @@
 	],
 
 	"mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/mickeahlinder/devcontainer-features/tfenv:1": {}
+  },
   "customizations": {
     "vscode": {
       "settings": {
@@ -22,5 +28,8 @@
         "golang.Go"
       ]
     }
-  }
+  },
+  "remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" },
+  "workspaceFolder": "${localWorkspaceFolder}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind"
 }
