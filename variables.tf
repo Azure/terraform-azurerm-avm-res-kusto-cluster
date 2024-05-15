@@ -195,13 +195,14 @@ variable "auto_stop_enabled" {
 # tflint-ignore: terraform_unused_declarations
 variable "customer_managed_key" {
   type = object({
-    key_vault_resource_id              = optional(string)
-    key_name                           = optional(string)
-    key_version                        = optional(string, null)
-    user_assigned_identity_resource_id = optional(string, null)
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+    user_assigned_identity = optional(object({
+      resource_id = string
+    }), null)
   })
-  default     = {}
-  description = "Customer managed keys that should be associated with the resource."
+  default = null
 }
 
 # tflint-ignore: terraform_unused_declarations
@@ -430,21 +431,20 @@ variable "language_extensions" {
 # tflint-ignore: terraform_unused_declarations
 variable "location" {
   type        = string
-  default     = null
+  nullable    = false
   description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
 }
 
 variable "lock" {
   type = object({
     name = optional(string, null)
-    kind = optional(string, "None")
+    kind = string
   })
-  default     = {}
+  default     = null
   description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
-  nullable    = false
 
   validation {
-    condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
+    condition     = var.lock == null ? true : contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
   }
 }
