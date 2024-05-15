@@ -5,3 +5,4 @@ databases = {
     soft_delete_period = "P30D"
   }
 }
+location = "southeastasia"

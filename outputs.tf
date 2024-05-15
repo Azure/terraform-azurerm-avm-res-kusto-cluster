@@ -31,6 +31,11 @@ output "resource" {
   value       = azurerm_kusto_cluster.this
 }
 
+output "resource_id" {
+  description = "The Kusto Cluster resource ID."
+  value       = azurerm_kusto_cluster.this.id
+}
+
 output "uri" {
   description = "The FQDN of the Azure Kusto Cluster."
   value       = azurerm_kusto_cluster.this.uri

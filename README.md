@@ -17,7 +17,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.7.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.88.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.103.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0)
 
@@ -25,7 +25,7 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.88.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.103.0)
 
 - <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0)
 
@@ -182,7 +182,7 @@ Default: `true`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
-Description: required AVM interfaces remove only if not supported by the resource tflint-ignore: terraform\_unused\_declarations
+Description: Customer managed keys that should be associated with the resource.
 
 Type:
 
@@ -378,12 +378,12 @@ Type:
 
 ```hcl
 object({
-    type                       = string
+    system_assigned            = optional(bool, false)
     user_assigned_resource_ids = optional(set(string), [])
   })
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_optimized_auto_scale"></a> [optimized\_auto\_scale](#input\_optimized\_auto\_scale)
 
@@ -448,12 +448,13 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
+      kind = string
       name = optional(string, null)
-      kind = optional(string, "None")
-    }), {})
-    tags                                    = optional(map(any), null)
+    }), null)
+    tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
@@ -505,6 +506,7 @@ Description: A map of role assignments to create on this resource. The map key i
 - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
 - `condition` - The condition which will be used to scope the role assignment.
 - `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+- `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 
@@ -519,6 +521,7 @@ map(object({
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
 ```
 
@@ -613,6 +616,10 @@ Description: A map of private endpoints. The map key is the supplied input to va
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
 Description: This is the full output for the resource.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The Kusto Cluster resource ID.
 
 ### <a name="output_uri"></a> [uri](#output\_uri)
 
