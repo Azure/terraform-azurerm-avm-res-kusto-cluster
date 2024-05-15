@@ -1,4 +1,11 @@
 # tflint-ignore: terraform_unused_declarations
+variable "location" {
+  type        = string
+  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
+  nullable    = false
+}
+
+# tflint-ignore: terraform_unused_declarations
 variable "name" {
   type        = string
   description = "The name of the this resource."
@@ -426,13 +433,6 @@ variable "language_extensions" {
     condition     = var.language_extensions == null ? true : setunion(["PYTHON", "PYTHON_3.10.8", "R"], var.language_extensions) == toset(["PYTHON", "PYTHON_3.10.8", "R"])
     error_message = "Only set an authorised language 'PYTHON', 'PYTHON_3.10.8', 'R'"
   }
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "location" {
-  type        = string
-  nullable    = false
-  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
 }
 
 variable "lock" {

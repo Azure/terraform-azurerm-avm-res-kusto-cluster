@@ -47,6 +47,12 @@ The following resources are used by this module:
 
 The following input variables are required:
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location.
+
+Type: `string`
+
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name of the this resource.
@@ -176,20 +182,22 @@ Default: `true`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
-Description: Customer managed keys that should be associated with the resource.
+Description: required AVM interfaces remove only if not supported by the resource tflint-ignore: terraform\_unused\_declarations
 
 Type:
 
 ```hcl
 object({
-    key_vault_resource_id              = optional(string)
-    key_name                           = optional(string)
-    key_version                        = optional(string, null)
-    user_assigned_identity_resource_id = optional(string, null)
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+    user_assigned_identity = optional(object({
+      resource_id = string
+    }), null)
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_databases"></a> [databases](#input\_databases)
 
@@ -347,14 +355,6 @@ Type: `set(string)`
 
 Default: `null`
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
 Description: The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
@@ -364,11 +364,11 @@ Type:
 ```hcl
 object({
     name = optional(string, null)
-    kind = optional(string, "None")
+    kind = string
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 

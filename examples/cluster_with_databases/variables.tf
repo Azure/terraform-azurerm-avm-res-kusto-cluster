@@ -1,3 +1,10 @@
+# tflint-ignore: terraform_unused_declarations
+variable "location" {
+  type        = string
+  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
+  nullable    = false
+}
+
 variable "allowed_fqdns" {
   type        = set(string)
   default     = null
@@ -260,13 +267,6 @@ variable "language_extensions" {
   }
 }
 
-# tflint-ignore: terraform_unused_declarations
-variable "location" {
-  type        = string
-  nullable    = false
-  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
-}
-
 variable "lock" {
   type = object({
     kind = string
@@ -293,13 +293,13 @@ variable "managed_identities" {
     user_assigned_resource_ids = optional(set(string), [])
   })
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
   Controls the Managed Identity configuration on this resource. The following properties can be specified:
   
   - `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
   - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
   DESCRIPTION
+  nullable    = false
 }
 
 # tflint-ignore: terraform_unused_declarations
