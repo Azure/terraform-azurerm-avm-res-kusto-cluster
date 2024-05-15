@@ -1,5 +1,5 @@
 {
-  "image": "ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
 
   "runArgs": [
 		"--cap-add=SYS_PTRACE",
@@ -13,23 +13,15 @@
   "features": {
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-    "ghcr.io/devcontainers/features/terraform:1": {},
     "ghcr.io/mickeahlinder/devcontainer-features/tfenv:1": {}
   },
   "customizations": {
     "vscode": {
-      "settings": {
-        "go.toolsManagement.checkForUpdates": "local",
-        "go.useLanguageServer": true,
-        "go.goroot": "/usr/local/go"
-      },
       "extensions": [
         "hashicorp.terraform",
         "golang.Go"
       ]
     }
   },
-  "remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" },
-  "workspaceFolder": "${localWorkspaceFolder}",
-  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind"
+  "remoteUser": "root"
 }
