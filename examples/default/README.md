@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# Example with database, private endpoint and diagnostic provfile
+# Example with database, private endpoint and diagnostic profile
 
 This example shows how to deploy the module.
 
@@ -68,8 +68,9 @@ resource "azurerm_resource_group" "example" {
 
 module "kusto" {
   source = "../../"
-  # source             = "Azure/avm-res-kusto-cluster/azurerm"
-  # ...
+  # source  = "Azure/avm-res-kusto-cluster/azurerm"
+  # version = "0.1.0"
+
   enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique

@@ -52,8 +52,9 @@ resource "azurerm_resource_group" "example" {
 
 module "kusto" {
   source = "../../"
-  # source             = "Azure/avm-res-kusto-cluster/azurerm"
-  # ...
+  # source  = "Azure/avm-res-kusto-cluster/azurerm"
+  # version = "0.1.0"
+
   enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique

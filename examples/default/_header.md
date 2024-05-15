@@ -1,4 +1,4 @@
-# Example with database, private endpoint and diagnostic provfile
+# Example with database, private endpoint and diagnostic profile
 
 This example shows how to deploy the module.
 

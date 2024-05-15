@@ -82,8 +82,9 @@ resource "azurerm_storage_account" "example" {
 
 module "kusto" {
   source = "../../"
-  # source             = "Azure/avm-res-kusto-cluster/azurerm"
-  # ...
+  # source  = "Azure/avm-res-kusto-cluster/azurerm"
+  # version = "0.1.0"
+
   enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique
@@ -146,8 +147,9 @@ module "kusto" {
 # Call the kusto_database submodule directlty and reference the existing kusto cluster
 module "kusto_database" {
   source = "../..//modules/azurerm_kusto_database"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm//modules/azurerm_kusto_database"
-  # ...
+  # source  = "Azure/avm-res-kusto-cluster/azurerm//modules/azurerm_kusto_database"
+  # version = "0.1.0"
+
   location            = module.kusto.resource.location
   name                = module.naming.kusto_database.name_unique
   resource_group_name = module.kusto.resource.resource_group_name
