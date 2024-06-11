@@ -1,4 +1,11 @@
 # tflint-ignore: terraform_unused_declarations
+variable "location" {
+  type        = string
+  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
+  nullable    = false
+}
+
+# tflint-ignore: terraform_unused_declarations
 variable "name" {
   type        = string
   description = "The name of the this resource."
@@ -195,12 +202,14 @@ variable "auto_stop_enabled" {
 # tflint-ignore: terraform_unused_declarations
 variable "customer_managed_key" {
   type = object({
-    key_vault_resource_id              = optional(string)
-    key_name                           = optional(string)
-    key_version                        = optional(string, null)
-    user_assigned_identity_resource_id = optional(string, null)
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+    user_assigned_identity = optional(object({
+      resource_id = string
+    }), null)
   })
-  default     = {}
+  default     = null
   description = "Customer managed keys that should be associated with the resource."
 }
 
@@ -427,24 +436,16 @@ variable "language_extensions" {
   }
 }
 
-# tflint-ignore: terraform_unused_declarations
-variable "location" {
-  type        = string
-  default     = null
-  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
-}
-
 variable "lock" {
   type = object({
     name = optional(string, null)
-    kind = optional(string, "None")
+    kind = string
   })
-  default     = {}
+  default     = null
   description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
-  nullable    = false
 
   validation {
-    condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
+    condition     = var.lock == null ? true : contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
   }
 }
@@ -452,16 +453,12 @@ variable "lock" {
 # tflint-ignore: terraform_unused_declarations
 variable "managed_identities" {
   type = object({
-    type                       = string
+    system_assigned            = optional(bool, false)
     user_assigned_resource_ids = optional(set(string), [])
   })
-  default     = null
+  default     = {}
   description = "Managed identities to be created for the resource."
-
-  validation {
-    condition     = var.managed_identities == null ? true : contains(["SystemAssigned", "UserAssigned", "SystemAssigned, UserAssigned"], var.managed_identities.type)
-    error_message = "The value must be either 'SystemAssigned', 'UserAssigned', 'SystemAssigned, UserAssigned'."
-  }
+  nullable    = false
 }
 
 # tflint-ignore: terraform_unused_declarations
@@ -523,12 +520,13 @@ variable "private_endpoints" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
+      kind = string
       name = optional(string, null)
-      kind = optional(string, "None")
-    }), {})
-    tags                                    = optional(map(any), null)
+    }), null)
+    tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
@@ -562,6 +560,7 @@ A map of private endpoints to create on this resource. The map key is deliberate
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "public_ip_type" {
@@ -599,20 +598,23 @@ variable "role_assignments" {
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
   default     = {}
-  description = <<DESCRIPTION
-A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  description = <<-DESCRIPTION
+  A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
-- `description` - The description of the role assignment.
-- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
-- `condition` - The condition which will be used to scope the role assignment.
-- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+  - `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+  - `principal_id` - The ID of the principal to assign the role to.
+  - `description` - The description of the role assignment.
+  - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+  - `condition` - The condition which will be used to scope the role assignment.
+  - `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+  - `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
-> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
-DESCRIPTION
+  > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+  DESCRIPTION
+  nullable    = false
 }
 
 variable "streaming_ingestion_enabled" {

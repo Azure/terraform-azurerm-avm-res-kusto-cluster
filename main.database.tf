@@ -1,4 +1,5 @@
 module "kusto_database" {
+  # tflint-ignore: required_module_source_tffr1
   source   = "./modules/azurerm_kusto_database"
   for_each = var.databases
 

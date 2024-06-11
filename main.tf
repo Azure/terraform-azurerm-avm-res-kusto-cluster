@@ -22,12 +22,27 @@ resource "azurerm_kusto_cluster" "this" {
     name     = var.sku.name
     capacity = var.sku.capacity
   }
+  ## Resources supporting both SystemAssigned and UserAssigned
   dynamic "identity" {
-    for_each = var.managed_identities == null ? [] : [var.managed_identities]
-
+    for_each = local.managed_identities.system_assigned_user_assigned
     content {
       type         = identity.value.type
-      identity_ids = try(identity.value.user_assigned_resource_ids, null)
+      identity_ids = identity.value.user_assigned_resource_ids
+    }
+  }
+  ## Resources that only support SystemAssigned
+  dynamic "identity" {
+    for_each = local.managed_identities.system_assigned
+    content {
+      type = identity.value.type
+    }
+  }
+  ## Resources that only support UserAssigned
+  dynamic "identity" {
+    for_each = local.managed_identities.user_assigned
+    content {
+      type         = identity.value.type
+      identity_ids = identity.value.user_assigned_resource_ids
     }
   }
   dynamic "optimized_auto_scale" {
@@ -49,9 +64,31 @@ resource "azurerm_kusto_cluster" "this" {
   }
 }
 
+locals {
+  managed_identities = {
+    system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
+      this = {
+        type                       = var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
+        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
+      }
+    } : {}
+    system_assigned = var.managed_identities.system_assigned ? {
+      this = {
+        type = "SystemAssigned"
+      }
+    } : {}
+    user_assigned = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
+      this = {
+        type                       = "UserAssigned"
+        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
+      }
+    } : {}
+  }
+}
+
 # required AVM resources interfaces
 resource "azurerm_management_lock" "this" {
-  count = var.lock.kind != "None" ? 1 : 0
+  count = var.lock != null ? 1 : 0
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")

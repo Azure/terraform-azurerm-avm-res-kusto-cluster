@@ -73,7 +73,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  account_replication_type = "LRS"
+  account_replication_type = "ZRS"
   account_tier             = "Standard"
   location                 = azurerm_resource_group.example.location
   name                     = module.naming.storage_account.name_unique
@@ -129,13 +129,14 @@ module "kusto" {
   #   maximum_instances = 10
   # }
 
-  diagnostic_settings = {
-    operations = {
-      name                        = "Operational logs"
-      workspace_resource_id       = azurerm_log_analytics_workspace.example.id
-      storage_account_resource_id = azurerm_storage_account.example.id
-    }
-  }
+  # Commented as it is impacted by a bug that prevent the deployment to be idempotent https://github.com/Azure/azure-rest-api-specs/issues/22400
+  # diagnostic_settings = {
+  #   operations = {
+  #     name                        = "Operational logs"
+  #     workspace_resource_id       = azurerm_log_analytics_workspace.example.id
+  #     storage_account_resource_id = azurerm_storage_account.example.id
+  #   }
+  # }
   private_endpoints = {
     pip1 = {
       subnet_resource_id = azurerm_subnet.example.id

@@ -1,4 +1,5 @@
 module "kusto_cluster_principal_assignment" {
+  # tflint-ignore: required_module_source_tffr1
   source   = "./modules/azurerm_kusto_cluster_principal_assignment"
   for_each = var.kusto_cluster_principal_assignments
 

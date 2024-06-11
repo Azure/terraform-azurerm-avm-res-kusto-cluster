@@ -90,7 +90,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  account_replication_type = "LRS"
+  account_replication_type = "ZRS"
   account_tier             = "Standard"
   location                 = azurerm_resource_group.example.location
   name                     = module.naming.storage_account.name_unique
@@ -146,13 +146,14 @@ module "kusto" {
   #   maximum_instances = 10
   # }
 
-  diagnostic_settings = {
-    operations = {
-      name                        = "Operational logs"
-      workspace_resource_id       = azurerm_log_analytics_workspace.example.id
-      storage_account_resource_id = azurerm_storage_account.example.id
-    }
-  }
+  # Commented as it is impacted by a bug that prevent the deployment to be idempotent https://github.com/Azure/azure-rest-api-specs/issues/22400
+  # diagnostic_settings = {
+  #   operations = {
+  #     name                        = "Operational logs"
+  #     workspace_resource_id       = azurerm_log_analytics_workspace.example.id
+  #     storage_account_resource_id = azurerm_storage_account.example.id
+  #   }
+  # }
   private_endpoints = {
     pip1 = {
       subnet_resource_id = azurerm_subnet.example.id
@@ -250,14 +251,16 @@ Type:
 
 ```hcl
 object({
-    key_vault_resource_id              = optional(string)
-    key_name                           = optional(string)
-    key_version                        = optional(string, null)
-    user_assigned_identity_resource_id = optional(string, null)
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+    user_assigned_identity = optional(object({
+      resource_id = string
+    }), null)
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_databases"></a> [databases](#input\_databases)
 
@@ -415,43 +418,41 @@ Type: `set(string)`
 
 Default: `null`
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
-Description: The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+Description:   Controls the Resource Lock configuration for this resource. The following properties can be specified:
+
+  - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
+  - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
 
 Type:
 
 ```hcl
 object({
+    kind = string
     name = optional(string, null)
-    kind = optional(string, "None")
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
-Description: Managed identities to be created for the resource.
+Description:   Controls the Managed Identity configuration on this resource. The following properties can be specified:
+
+  - `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
+  - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
 
 Type:
 
 ```hcl
 object({
-    type                       = string
+    system_assigned            = optional(bool, false)
     user_assigned_resource_ids = optional(set(string), [])
   })
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_optimized_auto_scale"></a> [optimized\_auto\_scale](#input\_optimized\_auto\_scale)
 
@@ -516,12 +517,13 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
+      kind = string
       name = optional(string, null)
-      kind = optional(string, "None")
-    }), {})
-    tags                                    = optional(map(any), null)
+    }), null)
+    tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
@@ -573,6 +575,7 @@ Description: A map of role assignments to create on this resource. The map key i
 - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
 - `condition` - The condition which will be used to scope the role assignment.
 - `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+- `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 
@@ -587,6 +590,7 @@ map(object({
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
 ```
 
