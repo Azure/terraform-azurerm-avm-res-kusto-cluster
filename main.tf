@@ -25,6 +25,7 @@ resource "azurerm_kusto_cluster" "this" {
   ## Resources supporting both SystemAssigned and UserAssigned
   dynamic "identity" {
     for_each = local.managed_identities.system_assigned_user_assigned
+
     content {
       type         = identity.value.type
       identity_ids = identity.value.user_assigned_resource_ids
@@ -33,6 +34,7 @@ resource "azurerm_kusto_cluster" "this" {
   ## Resources that only support SystemAssigned
   dynamic "identity" {
     for_each = local.managed_identities.system_assigned
+
     content {
       type = identity.value.type
     }
@@ -40,6 +42,7 @@ resource "azurerm_kusto_cluster" "this" {
   ## Resources that only support UserAssigned
   dynamic "identity" {
     for_each = local.managed_identities.user_assigned
+
     content {
       type         = identity.value.type
       identity_ids = identity.value.user_assigned_resource_ids
@@ -122,18 +125,21 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
   dynamic "enabled_log" {
     for_each = each.value.log_categories
+
     content {
       category = enabled_log.value
     }
   }
   dynamic "enabled_log" {
     for_each = each.value.log_groups
+
     content {
       category_group = enabled_log.value
     }
   }
   dynamic "metric" {
     for_each = each.value.metric_categories
+
     content {
       category = metric.value
     }
