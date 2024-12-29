@@ -1,6 +1,6 @@
 resource "azurerm_kusto_database_principal_assignment" "this" {
-  database_name       = var.database_name
   cluster_name        = var.cluster_name
+  database_name       = var.database_name
   name                = var.name
   principal_id        = var.principal_id
   principal_type      = var.principal_type
