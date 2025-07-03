@@ -16,7 +16,6 @@ resource "azurerm_kusto_cluster" "this" {
   tags                               = var.tags
   trusted_external_tenants           = var.trusted_external_tenants
   zones                              = var.zones
-  language_extensions                = var.language_extensions
 
   sku {
     name     = var.sku.name
@@ -46,7 +45,14 @@ resource "azurerm_kusto_cluster" "this" {
       identity_ids = identity.value.user_assigned_resource_ids
     }
   }
+  dynamic "language_extensions" {
+    for_each = var.language_extensions
 
+    content {
+      image = language_extensions.value.image
+      name  = language_extensions.value.name
+    }
+  }
   dynamic "optimized_auto_scale" {
     for_each = var.optimized_auto_scale == null ? [] : [var.optimized_auto_scale]
 
