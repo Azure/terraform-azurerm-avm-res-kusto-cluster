@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 1.7.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -52,19 +53,14 @@ resource "azurerm_resource_group" "example" {
 
 module "kusto" {
   source = "../../"
-  # source  = "Azure/avm-res-kusto-cluster/azurerm"
-  # version = "0.1.0"
 
-  enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique
   resource_group_name = azurerm_resource_group.example.name
-
   sku = {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
-
   databases = {
     crm = {
       name               = "crm"
@@ -72,5 +68,5 @@ module "kusto" {
       soft_delete_period = "P30D"
     }
   }
-
+  enable_telemetry = false # Disabled for testing. 
 }

@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 1.7.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -51,10 +52,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_virtual_network" "example" {
-  address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   name                = "example-vnet"
   resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
@@ -82,37 +83,17 @@ resource "azurerm_storage_account" "example" {
 
 module "kusto" {
   source = "../../"
-  # source  = "Azure/avm-res-kusto-cluster/azurerm"
-  # version = "0.1.0"
 
-  enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique
   resource_group_name = azurerm_resource_group.example.name
-
-  allowed_fqdns                       = var.allowed_fqdns
-  allowed_ip_ranges                   = var.allowed_ip_ranges
-  auto_stop_enabled                   = var.auto_stop_enabled
-  disk_encryption_enabled             = var.disk_encryption_enabled
-  kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
-  kusto_database_principal_assignment = var.kusto_database_principal_assignment
-  language_extensions                 = var.language_extensions
-  lock                                = var.lock
-  outbound_network_access_restricted  = var.outbound_network_access_restricted
-  public_ip_type                      = var.public_ip_type
-  public_network_access_enabled       = var.public_network_access_enabled
-  purge_enabled                       = var.purge_enabled
-  streaming_ingestion_enabled         = var.streaming_ingestion_enabled
-  tags                                = var.tags
-  trusted_external_tenants            = var.trusted_external_tenants
-  virtual_network_configuration       = var.virtual_network_configuration
-  double_encryption_enabled           = var.double_encryption_enabled
-  zones                               = var.zones
   sku = {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
-
+  allowed_fqdns     = var.allowed_fqdns
+  allowed_ip_ranges = var.allowed_ip_ranges
+  auto_stop_enabled = var.auto_stop_enabled
   databases = {
     crm = {
       name               = "crm"
@@ -120,15 +101,17 @@ module "kusto" {
       soft_delete_period = "P30D"
     }
   }
-
+  disk_encryption_enabled             = var.disk_encryption_enabled
+  double_encryption_enabled           = var.double_encryption_enabled
+  enable_telemetry                    = false # Disabled for testing. 
+  kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
+  kusto_database_principal_assignment = var.kusto_database_principal_assignment
+  language_extensions                 = var.language_extensions
+  lock                                = var.lock
   managed_identities = {
     type = "SystemAssigned"
   }
-  # optimized_auto_scale = {
-  #   minimum_instances = 2
-  #   maximum_instances = 10
-  # }
-
+  outbound_network_access_restricted = var.outbound_network_access_restricted
   # Commented as it is impacted by a bug that prevent the deployment to be idempotent https://github.com/Azure/azure-rest-api-specs/issues/22400
   # diagnostic_settings = {
   #   operations = {
@@ -142,19 +125,24 @@ module "kusto" {
       subnet_resource_id = azurerm_subnet.example.id
     }
   }
-
+  public_ip_type                = var.public_ip_type
+  public_network_access_enabled = var.public_network_access_enabled
+  purge_enabled                 = var.purge_enabled
+  streaming_ingestion_enabled   = var.streaming_ingestion_enabled
+  tags                          = var.tags
+  trusted_external_tenants      = var.trusted_external_tenants
+  virtual_network_configuration = var.virtual_network_configuration
+  zones                         = var.zones
 }
 
 # Call the kusto_database submodule directlty and reference the existing kusto cluster
 module "kusto_database" {
   source = "../..//modules/azurerm_kusto_database"
-  # source  = "Azure/avm-res-kusto-cluster/azurerm//modules/azurerm_kusto_database"
-  # version = "0.1.0"
 
+  cluster_name        = module.kusto.resource.name
   location            = module.kusto.resource.location
   name                = module.naming.kusto_database.name_unique
   resource_group_name = module.kusto.resource.resource_group_name
-  cluster_name        = module.kusto.resource.name
   hot_cache_period    = "P455D"
   soft_delete_period  = "P1D"
 }
