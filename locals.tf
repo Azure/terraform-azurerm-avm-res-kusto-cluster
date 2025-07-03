@@ -2,6 +2,19 @@ locals {
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
 
+locals {
+  managed_identities = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
+    type = (
+      var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0
+      ? "SystemAssigned, UserAssigned"
+      : var.managed_identities.system_assigned
+      ? "SystemAssigned"
+      : "UserAssigned"
+    )
+    user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
+  } : null
+}
+
 # Private endpoint application security group associations
 # Remove if this resource does not support private endpoints
 locals {
