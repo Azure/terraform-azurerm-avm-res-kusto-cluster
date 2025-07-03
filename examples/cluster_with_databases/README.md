@@ -21,11 +21,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
+      version = "~> 3.5"
     }
   }
 }
@@ -120,7 +120,7 @@ module "kusto" {
   }
   disk_encryption_enabled             = var.disk_encryption_enabled
   double_encryption_enabled           = var.double_encryption_enabled
-  enable_telemetry                    = false # Disabled for testing. 
+  enable_telemetry                    = false # Disabled for testing.
   kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
   kusto_database_principal_assignment = var.kusto_database_principal_assignment
   language_extensions                 = var.language_extensions
@@ -172,9 +172,9 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.7.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Resources
 
@@ -380,23 +380,21 @@ Default: `{}`
 
 ### <a name="input_language_extensions"></a> [language\_extensions](#input\_language\_extensions)
 
-Description: (Optional) An list of language\_extensions to enable.   
+Description: (Optional) A list of language\_extensions to enable.
 
-Valid values are: PYTHON, PYTHON\_3.10.8 and R.   
+- `image` - (Required) The image of the language extension, possible values are `Python3_6_5`, `Python3_10_8` and `R`.
+- `name` - (Required) The name of the language extension, possible values are `PYTHON`, `R`.
 
-PYTHON is used to specify Python 3.6.5 image and PYTHON\_3.10.8 is used to specify Python 3.10.8 image.  
-Note that PYTHON\_3.10.8 is only available in skus which support nested virtualization.
+Type:
 
-NOTE:  
-In v4.0.0 and later version of the AzureRM Provider,   
-language\_extensions will be changed to a list of language\_extension block.   
-In each block, name and image are required.   
-name is the name of the language extension, possible values are PYTHON, R.   
-image is the image of the language extension, possible values are Python3\_6\_5, Python3\_10\_8 and R.
+```hcl
+list(object({
+    image = string
+    name  = string
+  }))
+```
 
-Type: `set(string)`
-
-Default: `null`
+Default: `[]`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
@@ -455,8 +453,8 @@ Default: `null`
 
 ### <a name="input_outbound_network_access_restricted"></a> [outbound\_network\_access\_restricted](#input\_outbound\_network\_access\_restricted)
 
-Description: (Optional) Whether to restrict outbound network access.   
-Value is optional but if passed in, must be true or false.  
+Description: (Optional) Whether to restrict outbound network access.  
+Value is optional but if passed in, must be true or false.
 
 Default is false.
 
@@ -594,11 +592,11 @@ Default: `null`
 
 ### <a name="input_trusted_external_tenants"></a> [trusted\_external\_tenants](#input\_trusted\_external\_tenants)
 
-Description: (Optional) Specifies a list of tenant IDs that are trusted by the cluster.   
+Description: (Optional) Specifies a list of tenant IDs that are trusted by the cluster.  
 New or updated Kusto Cluster will only allow your own tenant by default.
 
-Use trusted\_external\_tenants = ["*"] to explicitly allow all other tenants,   
-trusted\_external\_tenants = [] for only your tenant or   
+Use trusted\_external\_tenants = ["*"] to explicitly allow all other tenants,  
+trusted\_external\_tenants = [] for only your tenant or  
 trusted\_external\_tenants = ["<tenantId1>", "<tenantIdx>"] to allow specific other tenants.
 
 Type: `set(string)`
@@ -607,7 +605,7 @@ Default: `[]`
 
 ### <a name="input_virtual_network_configuration"></a> [virtual\_network\_configuration](#input\_virtual\_network\_configuration)
 
-Description: (Optional) A virtual\_network\_configuration block as defined below.   
+Description: (Optional) A virtual\_network\_configuration block as defined below.  
 Changing this forces a new resource to be created.
 
 A virtual\_network\_configuration block supports the following:

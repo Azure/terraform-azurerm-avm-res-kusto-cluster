@@ -4,11 +4,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
+      version = "~> 3.5"
     }
   }
 }
@@ -68,5 +68,5 @@ module "kusto" {
       soft_delete_period = "P30D"
     }
   }
-  enable_telemetry = false # Disabled for testing. 
+  enable_telemetry = false # Disabled for testing.
 }

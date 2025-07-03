@@ -4,11 +4,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
+      version = "~> 3.5"
     }
   }
 }
@@ -103,7 +103,7 @@ module "kusto" {
   }
   disk_encryption_enabled             = var.disk_encryption_enabled
   double_encryption_enabled           = var.double_encryption_enabled
-  enable_telemetry                    = false # Disabled for testing. 
+  enable_telemetry                    = false # Disabled for testing.
   kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
   kusto_database_principal_assignment = var.kusto_database_principal_assignment
   language_extensions                 = var.language_extensions
