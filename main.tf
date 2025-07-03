@@ -8,7 +8,6 @@ resource "azurerm_kusto_cluster" "this" {
   auto_stop_enabled                  = var.auto_stop_enabled
   disk_encryption_enabled            = var.disk_encryption_enabled
   double_encryption_enabled          = var.double_encryption_enabled
-  language_extensions                = var.language_extensions
   outbound_network_access_restricted = var.outbound_network_access_restricted
   public_ip_type                     = var.public_ip_type
   public_network_access_enabled      = var.public_network_access_enabled
@@ -46,6 +45,14 @@ resource "azurerm_kusto_cluster" "this" {
     content {
       type         = identity.value.type
       identity_ids = identity.value.user_assigned_resource_ids
+    }
+  }
+  dynamic "language_extensions" {
+    for_each = var.language_extensions
+
+    content {
+      image = language_extensions.value.image
+      name  = language_extensions.value.name
     }
   }
   dynamic "optimized_auto_scale" {
