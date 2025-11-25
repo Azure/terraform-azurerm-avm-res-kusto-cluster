@@ -17,14 +17,15 @@ terraform -chdir=examples/cluster_with_databases apply -var-file terraform.tfvar
 ```hcl
 terraform {
   required_version = ">= 1.7.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
+      version = "~> 3.5"
     }
   }
 }
@@ -68,10 +69,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_virtual_network" "example" {
-  address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   name                = "example-vnet"
   resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
@@ -99,37 +100,17 @@ resource "azurerm_storage_account" "example" {
 
 module "kusto" {
   source = "../../"
-  # source  = "Azure/avm-res-kusto-cluster/azurerm"
-  # version = "0.1.0"
 
-  enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique
   resource_group_name = azurerm_resource_group.example.name
-
-  allowed_fqdns                       = var.allowed_fqdns
-  allowed_ip_ranges                   = var.allowed_ip_ranges
-  auto_stop_enabled                   = var.auto_stop_enabled
-  disk_encryption_enabled             = var.disk_encryption_enabled
-  kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
-  kusto_database_principal_assignment = var.kusto_database_principal_assignment
-  language_extensions                 = var.language_extensions
-  lock                                = var.lock
-  outbound_network_access_restricted  = var.outbound_network_access_restricted
-  public_ip_type                      = var.public_ip_type
-  public_network_access_enabled       = var.public_network_access_enabled
-  purge_enabled                       = var.purge_enabled
-  streaming_ingestion_enabled         = var.streaming_ingestion_enabled
-  tags                                = var.tags
-  trusted_external_tenants            = var.trusted_external_tenants
-  virtual_network_configuration       = var.virtual_network_configuration
-  double_encryption_enabled           = var.double_encryption_enabled
-  zones                               = var.zones
   sku = {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
-
+  allowed_fqdns     = var.allowed_fqdns
+  allowed_ip_ranges = var.allowed_ip_ranges
+  auto_stop_enabled = var.auto_stop_enabled
   databases = {
     crm = {
       name               = "crm"
@@ -137,15 +118,17 @@ module "kusto" {
       soft_delete_period = "P30D"
     }
   }
-
+  disk_encryption_enabled             = var.disk_encryption_enabled
+  double_encryption_enabled           = var.double_encryption_enabled
+  enable_telemetry                    = false # Disabled for testing.
+  kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
+  kusto_database_principal_assignment = var.kusto_database_principal_assignment
+  language_extensions                 = var.language_extensions
+  lock                                = var.lock
   managed_identities = {
     type = "SystemAssigned"
   }
-  # optimized_auto_scale = {
-  #   minimum_instances = 2
-  #   maximum_instances = 10
-  # }
-
+  outbound_network_access_restricted = var.outbound_network_access_restricted
   # Commented as it is impacted by a bug that prevent the deployment to be idempotent https://github.com/Azure/azure-rest-api-specs/issues/22400
   # diagnostic_settings = {
   #   operations = {
@@ -159,19 +142,24 @@ module "kusto" {
       subnet_resource_id = azurerm_subnet.example.id
     }
   }
-
+  public_ip_type                = var.public_ip_type
+  public_network_access_enabled = var.public_network_access_enabled
+  purge_enabled                 = var.purge_enabled
+  streaming_ingestion_enabled   = var.streaming_ingestion_enabled
+  tags                          = var.tags
+  trusted_external_tenants      = var.trusted_external_tenants
+  virtual_network_configuration = var.virtual_network_configuration
+  zones                         = var.zones
 }
 
 # Call the kusto_database submodule directlty and reference the existing kusto cluster
 module "kusto_database" {
   source = "../..//modules/azurerm_kusto_database"
-  # source  = "Azure/avm-res-kusto-cluster/azurerm//modules/azurerm_kusto_database"
-  # version = "0.1.0"
 
+  cluster_name        = module.kusto.resource.name
   location            = module.kusto.resource.location
   name                = module.naming.kusto_database.name_unique
   resource_group_name = module.kusto.resource.resource_group_name
-  cluster_name        = module.kusto.resource.name
   hot_cache_period    = "P455D"
   soft_delete_period  = "P1D"
 }
@@ -184,17 +172,9 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.7.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
-
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
-
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Resources
 
@@ -400,23 +380,21 @@ Default: `{}`
 
 ### <a name="input_language_extensions"></a> [language\_extensions](#input\_language\_extensions)
 
-Description: (Optional) An list of language\_extensions to enable.   
+Description: (Optional) A list of language\_extensions to enable.
 
-Valid values are: PYTHON, PYTHON\_3.10.8 and R.   
+- `image` - (Required) The image of the language extension, possible values are `Python3_6_5`, `Python3_10_8` and `R`.
+- `name` - (Required) The name of the language extension, possible values are `PYTHON`, `R`.
 
-PYTHON is used to specify Python 3.6.5 image and PYTHON\_3.10.8 is used to specify Python 3.10.8 image.  
-Note that PYTHON\_3.10.8 is only available in skus which support nested virtualization.
+Type:
 
-NOTE:  
-In v4.0.0 and later version of the AzureRM Provider,   
-language\_extensions will be changed to a list of language\_extension block.   
-In each block, name and image are required.   
-name is the name of the language extension, possible values are PYTHON, R.   
-image is the image of the language extension, possible values are Python3\_6\_5, Python3\_10\_8 and R.
+```hcl
+list(object({
+    image = string
+    name  = string
+  }))
+```
 
-Type: `set(string)`
-
-Default: `null`
+Default: `[]`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
@@ -475,8 +453,8 @@ Default: `null`
 
 ### <a name="input_outbound_network_access_restricted"></a> [outbound\_network\_access\_restricted](#input\_outbound\_network\_access\_restricted)
 
-Description: (Optional) Whether to restrict outbound network access.   
-Value is optional but if passed in, must be true or false.  
+Description: (Optional) Whether to restrict outbound network access.  
+Value is optional but if passed in, must be true or false.
 
 Default is false.
 
@@ -614,11 +592,11 @@ Default: `null`
 
 ### <a name="input_trusted_external_tenants"></a> [trusted\_external\_tenants](#input\_trusted\_external\_tenants)
 
-Description: (Optional) Specifies a list of tenant IDs that are trusted by the cluster.   
+Description: (Optional) Specifies a list of tenant IDs that are trusted by the cluster.  
 New or updated Kusto Cluster will only allow your own tenant by default.
 
-Use trusted\_external\_tenants = ["*"] to explicitly allow all other tenants,   
-trusted\_external\_tenants = [] for only your tenant or   
+Use trusted\_external\_tenants = ["*"] to explicitly allow all other tenants,  
+trusted\_external\_tenants = [] for only your tenant or  
 trusted\_external\_tenants = ["<tenantId1>", "<tenantIdx>"] to allow specific other tenants.
 
 Type: `set(string)`
@@ -627,7 +605,7 @@ Default: `[]`
 
 ### <a name="input_virtual_network_configuration"></a> [virtual\_network\_configuration](#input\_virtual\_network\_configuration)
 
-Description: (Optional) A virtual\_network\_configuration block as defined below.   
+Description: (Optional) A virtual\_network\_configuration block as defined below.  
 Changing this forces a new resource to be created.
 
 A virtual\_network\_configuration block supports the following:

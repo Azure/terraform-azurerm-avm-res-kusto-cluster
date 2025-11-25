@@ -14,8 +14,8 @@ variable "auto_stop_enabled" {
   type        = bool
   default     = true
   description = <<-DESCRIPTION
-  (Optional) Specifies if the cluster could be automatically stopped 
-  (due to lack of data or no activity for many days). 
+  (Optional) Specifies if the cluster could be automatically stopped
+  (due to lack of data or no activity for many days).
 
   Defaults to true.
   DESCRIPTION
@@ -236,27 +236,24 @@ variable "kusto_database_principal_assignment" {
 }
 
 variable "language_extensions" {
-  type        = set(string)
-  default     = null
+  type = list(object({
+    image = string
+    name  = string
+  }))
+  default     = []
   description = <<-DESCRIPTION
-  (Optional) An list of language_extensions to enable. 
-  
-  Valid values are: PYTHON, PYTHON_3.10.8 and R. 
-  
-  PYTHON is used to specify Python 3.6.5 image and PYTHON_3.10.8 is used to specify Python 3.10.8 image.
-  Note that PYTHON_3.10.8 is only available in skus which support nested virtualization.
+  (Optional) A list of language_extensions to enable.
 
-  NOTE:
-  In v4.0.0 and later version of the AzureRM Provider, 
-  language_extensions will be changed to a list of language_extension block. 
-  In each block, name and image are required. 
-  name is the name of the language extension, possible values are PYTHON, R. 
-  image is the image of the language extension, possible values are Python3_6_5, Python3_10_8 and R.
+  - `image` - (Required) The image of the language extension, possible values are `Python3_6_5`, `Python3_10_8` and `R`.
+  - `name` - (Required) The name of the language extension, possible values are `PYTHON`, `R`.
   DESCRIPTION
+  nullable    = false
 
   validation {
-    condition     = var.language_extensions == null ? true : setunion(["PYTHON", "PYTHON_3.10.8", "R"], var.language_extensions) == toset(["PYTHON", "PYTHON_3.10.8", "R"])
-    error_message = "Only set an authorised language 'PYTHON', 'PYTHON_3.10.8', 'R'"
+    condition = alltrue(
+      [for ext in var.language_extensions : contains(["PYTHON", "R"], ext.name) && contains(["Python3_6_5", "Python3_10_8", "R"], ext.image)]
+    )
+    error_message = "Each language extension must have a valid name and image. Valid names are 'PYTHON', 'R' and valid images are 'Python3_6_5', 'Python3_10_8', 'R'."
   }
 }
 
@@ -268,7 +265,7 @@ variable "lock" {
   default     = null
   description = <<DESCRIPTION
   Controls the Resource Lock configuration for this resource. The following properties can be specified:
-  
+
   - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
   - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
   DESCRIPTION
@@ -288,7 +285,7 @@ variable "managed_identities" {
   default     = {}
   description = <<DESCRIPTION
   Controls the Managed Identity configuration on this resource. The following properties can be specified:
-  
+
   - `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
   - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
   DESCRIPTION
@@ -334,9 +331,9 @@ variable "outbound_network_access_restricted" {
   type        = bool
   default     = false
   description = <<-DESCRIPTION
-  (Optional) Whether to restrict outbound network access. 
+  (Optional) Whether to restrict outbound network access.
   Value is optional but if passed in, must be true or false.
-  
+
   Default is false.
   DESCRIPTION
   nullable    = false
@@ -467,11 +464,11 @@ variable "trusted_external_tenants" {
   type        = set(string)
   default     = []
   description = <<-DESCRIPTION
-  (Optional) Specifies a list of tenant IDs that are trusted by the cluster. 
-  New or updated Kusto Cluster will only allow your own tenant by default. 
+  (Optional) Specifies a list of tenant IDs that are trusted by the cluster.
+  New or updated Kusto Cluster will only allow your own tenant by default.
 
-  Use trusted_external_tenants = ["*"] to explicitly allow all other tenants, 
-  trusted_external_tenants = [] for only your tenant or 
+  Use trusted_external_tenants = ["*"] to explicitly allow all other tenants,
+  trusted_external_tenants = [] for only your tenant or
   trusted_external_tenants = ["<tenantId1>", "<tenantIdx>"] to allow specific other tenants.
   DESCRIPTION
 }
@@ -484,7 +481,7 @@ variable "virtual_network_configuration" {
   })
   default     = null
   description = <<-DESCRIPTION
-  (Optional) A virtual_network_configuration block as defined below. 
+  (Optional) A virtual_network_configuration block as defined below.
   Changing this forces a new resource to be created.
 
   A virtual_network_configuration block supports the following:

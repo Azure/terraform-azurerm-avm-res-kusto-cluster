@@ -1,0 +1,98 @@
+<!-- BEGIN_TF_DOCS -->
+# Azure Kusto Cluster Principal Assignment Module
+
+<!-- markdownlint-disable MD033 -->
+## Requirements
+
+No requirements.
+
+## Resources
+
+The following resources are used by this module:
+
+- [azurerm_kusto_cluster_principal_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kusto_cluster_principal_assignment) (resource)
+
+<!-- markdownlint-disable MD013 -->
+## Required Inputs
+
+The following input variables are required:
+
+### <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name)
+
+Description: (Required) The name of the cluster in which to create the resource. Changing this forces a new resource to be created.
+
+Type: `string`
+
+### <a name="input_name"></a> [name](#input\_name)
+
+Description: (Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created.
+
+Type: `string`
+
+### <a name="input_principal_id"></a> [principal\_id](#input\_principal\_id)
+
+Description: (Required) The object id of the principal. Changing this forces a new resource to be created.
+
+Type: `string`
+
+### <a name="input_principal_type"></a> [principal\_type](#input\_principal\_type)
+
+Description: (Required) The type of the principal. Valid values include App, Group, User. Changing this forces a new resource to be created.
+
+Type: `string`
+
+### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+
+Description: (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
+
+Type: `string`
+
+### <a name="input_role"></a> [role](#input\_role)
+
+Description: (Required) The cluster role assigned to the principal. Valid values include AllDatabasesAdmin and AllDatabasesViewer. Changing this forces a new resource to be created.
+
+Type: `string`
+
+### <a name="input_tenant_id"></a> [tenant\_id](#input\_tenant\_id)
+
+Description: (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
+
+Type: `string`
+
+## Optional Inputs
+
+No optional inputs.
+
+## Outputs
+
+The following outputs are exported:
+
+### <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name)
+
+Description: The name of the cluster.
+
+### <a name="output_id"></a> [id](#output\_id)
+
+Description: The ID of the Kusto Cluster Principal Assignment.
+
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the Kusto cluster principal assignment.
+
+### <a name="output_principal_name"></a> [principal\_name](#output\_principal\_name)
+
+Description: The name of the principal.
+
+### <a name="output_tenant_name"></a> [tenant\_name](#output\_tenant\_name)
+
+Description: The name of the tenant.
+
+## Modules
+
+No modules.
+
+<!-- markdownlint-disable-next-line MD041 -->
+## Data Collection
+
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+<!-- END_TF_DOCS -->

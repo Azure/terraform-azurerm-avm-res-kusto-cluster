@@ -8,7 +8,6 @@ resource "azurerm_kusto_cluster" "this" {
   auto_stop_enabled                  = var.auto_stop_enabled
   disk_encryption_enabled            = var.disk_encryption_enabled
   double_encryption_enabled          = var.double_encryption_enabled
-  language_extensions                = var.language_extensions
   outbound_network_access_restricted = var.outbound_network_access_restricted
   public_ip_type                     = var.public_ip_type
   public_network_access_enabled      = var.public_network_access_enabled
@@ -22,27 +21,20 @@ resource "azurerm_kusto_cluster" "this" {
     name     = var.sku.name
     capacity = var.sku.capacity
   }
-  ## Resources supporting both SystemAssigned and UserAssigned
   dynamic "identity" {
-    for_each = local.managed_identities.system_assigned_user_assigned
+    for_each = local.managed_identities[*]
+
     content {
       type         = identity.value.type
       identity_ids = identity.value.user_assigned_resource_ids
     }
   }
-  ## Resources that only support SystemAssigned
-  dynamic "identity" {
-    for_each = local.managed_identities.system_assigned
+  dynamic "language_extensions" {
+    for_each = var.language_extensions
+
     content {
-      type = identity.value.type
-    }
-  }
-  ## Resources that only support UserAssigned
-  dynamic "identity" {
-    for_each = local.managed_identities.user_assigned
-    content {
-      type         = identity.value.type
-      identity_ids = identity.value.user_assigned_resource_ids
+      image = language_extensions.value.image
+      name  = language_extensions.value.name
     }
   }
   dynamic "optimized_auto_scale" {
@@ -61,28 +53,6 @@ resource "azurerm_kusto_cluster" "this" {
       engine_public_ip_id          = virtual_network_configuration.value.engine_public_ip_id
       subnet_id                    = virtual_network_configuration.value.subnet_id
     }
-  }
-}
-
-locals {
-  managed_identities = {
-    system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
-      this = {
-        type                       = var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
-    system_assigned = var.managed_identities.system_assigned ? {
-      this = {
-        type = "SystemAssigned"
-      }
-    } : {}
-    user_assigned = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
-      this = {
-        type                       = "UserAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
   }
 }
 
@@ -122,18 +92,21 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
   dynamic "enabled_log" {
     for_each = each.value.log_categories
+
     content {
       category = enabled_log.value
     }
   }
   dynamic "enabled_log" {
     for_each = each.value.log_groups
+
     content {
       category_group = enabled_log.value
     }
   }
   dynamic "metric" {
     for_each = each.value.metric_categories
+
     content {
       category = metric.value
     }
