@@ -3,8 +3,8 @@ module "kusto_database_principal_assignment" {
   source   = "./modules/azurerm_kusto_database_principal_assignment"
   for_each = var.kusto_database_principal_assignment
 
-  database_name       = each.value.database_name
   cluster_name        = azurerm_kusto_cluster.this.name
+  database_name       = each.value.database_name
   name                = each.value.name
   principal_id        = each.value.principal_id
   principal_type      = each.value.principal_type

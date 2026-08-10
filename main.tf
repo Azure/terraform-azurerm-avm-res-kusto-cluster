@@ -8,7 +8,6 @@ resource "azurerm_kusto_cluster" "this" {
   auto_stop_enabled                  = var.auto_stop_enabled
   disk_encryption_enabled            = var.disk_encryption_enabled
   double_encryption_enabled          = var.double_encryption_enabled
-  language_extensions                = var.language_extensions
   outbound_network_access_restricted = var.outbound_network_access_restricted
   public_ip_type                     = var.public_ip_type
   public_network_access_enabled      = var.public_network_access_enabled
@@ -17,11 +16,13 @@ resource "azurerm_kusto_cluster" "this" {
   tags                               = var.tags
   trusted_external_tenants           = var.trusted_external_tenants
   zones                              = var.zones
+  language_extensions                = var.language_extensions
 
   sku {
     name     = var.sku.name
     capacity = var.sku.capacity
   }
+
   ## Resources supporting both SystemAssigned and UserAssigned
   dynamic "identity" {
     for_each = local.managed_identities.system_assigned_user_assigned
@@ -45,6 +46,7 @@ resource "azurerm_kusto_cluster" "this" {
       identity_ids = identity.value.user_assigned_resource_ids
     }
   }
+
   dynamic "optimized_auto_scale" {
     for_each = var.optimized_auto_scale == null ? [] : [var.optimized_auto_scale]
 
@@ -53,6 +55,7 @@ resource "azurerm_kusto_cluster" "this" {
       minimum_instances = optimized_auto_scale.value.minimum_instances
     }
   }
+
   dynamic "virtual_network_configuration" {
     for_each = var.virtual_network_configuration == null ? [] : [var.virtual_network_configuration]
 
@@ -132,6 +135,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
       category_group = enabled_log.value
     }
   }
+
   dynamic "metric" {
     for_each = each.value.metric_categories
     content {
