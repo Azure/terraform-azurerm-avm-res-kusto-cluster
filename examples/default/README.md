@@ -17,6 +17,7 @@ terraform -chdir=examples/default apply
 ```hcl
 terraform {
   required_version = ">= 1.7.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -37,7 +38,6 @@ provider "azurerm" {
   }
 }
 
-
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
 module "regions" {
@@ -50,6 +50,7 @@ resource "random_integer" "region_index" {
   max = length(module.regions.regions) - 1
   min = 0
 }
+
 ## End of section to provide a random Azure region for the resource group
 
 # This ensures we have unique CAF compliant names for our resources.
@@ -69,19 +70,14 @@ resource "azurerm_resource_group" "example" {
 
 module "kusto" {
   source = "../../"
-  # source  = "Azure/avm-res-kusto-cluster/azurerm"
-  # version = "0.1.0"
 
-  enable_telemetry    = false # Disabled for testing. 
   location            = azurerm_resource_group.example.location
   name                = module.naming.kusto_cluster.name_unique
   resource_group_name = azurerm_resource_group.example.name
-
   sku = {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
-
   databases = {
     crm = {
       name               = "crm"
@@ -89,7 +85,7 @@ module "kusto" {
       soft_delete_period = "P30D"
     }
   }
-
+  enable_telemetry = false # Disabled for testing. 
 }
 ```
 
