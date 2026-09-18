@@ -121,7 +121,7 @@ module "kusto" {
   }
   disk_encryption_enabled             = var.disk_encryption_enabled
   double_encryption_enabled           = var.double_encryption_enabled
-  enable_telemetry                    = false # Disabled for testing. 
+  enable_telemetry                    = var.enable_telemetry # Disabled for testing. 
   kusto_cluster_principal_assignments = var.kusto_cluster_principal_assignments
   kusto_database_principal_assignment = var.kusto_database_principal_assignment
   language_extensions                 = var.language_extensions
@@ -327,7 +327,7 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_kusto_cluster_principal_assignments"></a> [kusto\_cluster\_principal\_assignments](#input\_kusto\_cluster\_principal\_assignments)
 

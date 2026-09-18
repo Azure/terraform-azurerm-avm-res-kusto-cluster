@@ -68,5 +68,5 @@ module "kusto" {
       soft_delete_period = "P30D"
     }
   }
-  enable_telemetry = false # Disabled for testing. 
+  enable_telemetry = var.enable_telemetry # Disabled for testing. 
 }
