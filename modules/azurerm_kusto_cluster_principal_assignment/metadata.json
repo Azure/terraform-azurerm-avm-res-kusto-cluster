@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Kusto Cluster Principal Assignment",
+  "moduleDescription": "Assigns an App, Group, or User principal a role on a Kusto cluster.",
+  "canonicalType": "Microsoft.Kusto/clusters/principalAssignments",
+  "telemetryIdPrefix": "46d3xtrf.res.9006bfb"
+}

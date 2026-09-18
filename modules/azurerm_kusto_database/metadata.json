@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Kusto Database",
+  "moduleDescription": "Creates a Kusto database in a cluster with configurable hot-cache and soft-delete periods.",
+  "canonicalType": "Microsoft.Kusto/clusters/databases",
+  "telemetryIdPrefix": "46d3xtrf.res.a58442e"
+}
