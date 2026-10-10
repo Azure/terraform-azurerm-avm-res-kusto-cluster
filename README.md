@@ -596,6 +596,12 @@ The following outputs are exported:
 
 Description: The Kusto Cluster URI to be used for data ingestion.
 
+### <a name="output_databases"></a> [databases](#output\_databases)
+
+Description: Information about the Kusto Databases created in the cluster.
+
+Refer to the database module outputs for more details about the attributes exported.
+
 ### <a name="output_id"></a> [id](#output\_id)
 
 Description: The Kusto Cluster ID.
