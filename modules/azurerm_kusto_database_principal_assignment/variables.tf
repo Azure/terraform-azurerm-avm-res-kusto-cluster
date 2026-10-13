@@ -1,11 +1,11 @@
-variable "database_name" {
-  type        = string
-  description = "(Required) The name of the database in which to create the resource. Changing this forces a new resource to be created."
-}
-
 variable "cluster_name" {
   type        = string
   description = "(Required) The name of the cluster in which to create the resource. Changing this forces a new resource to be created."
+}
+
+variable "database_name" {
+  type        = string
+  description = "(Required) The name of the database in which to create the resource. Changing this forces a new resource to be created."
 }
 
 variable "name" {
