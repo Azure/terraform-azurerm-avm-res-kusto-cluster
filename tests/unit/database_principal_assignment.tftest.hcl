@@ -1,14 +1,51 @@
 mock_provider "azurerm" {
+  alias  = "unit"
   source = "tests/setup/mock_data"
 }
 
+mock_provider "azapi" {
+  alias  = "unit"
+  source = "tests/setup/mock_azapi"
+}
+
+mock_provider "modtm" {
+  alias  = "unit"
+  source = "tests/setup/mock_modtm"
+}
+
+mock_provider "random" {
+  alias  = "unit"
+  source = "tests/setup/mock_random"
+}
+
+mock_provider "local" {
+  alias = "unit"
+}
+
 run "setup_dependencies" {
+  command = apply
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    local   = local.unit
+    random  = random.unit
+  }
+
   module {
     source = "./tests/setup/dependencies"
   }
 }
 
 run "validation_rules_required_pass" {
+  command = apply
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    modtm   = modtm.unit
+    random  = random.unit
+  }
 
   variables {
     name                = "demo"
@@ -39,6 +76,11 @@ run "validation_rules_required_pass" {
         role                = "Viewer"
       }
     }
+  }
+
+  assert {
+    condition     = alltrue([for assignment in module.kusto_database_principal_assignment : assignment.resource_id == assignment.id && assignment.resource_id != ""])
+    error_message = "Each database principal assignment must expose its resource ID and retain the id output."
   }
 
   assert {
@@ -76,6 +118,13 @@ run "validation_rules_required_pass" {
 
 run "validation_rules_fails" {
   command = plan
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    modtm   = modtm.unit
+    random  = random.unit
+  }
 
   variables {
     name                = "demo"

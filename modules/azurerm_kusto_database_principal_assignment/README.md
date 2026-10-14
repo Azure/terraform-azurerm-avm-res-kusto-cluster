@@ -5,7 +5,11 @@
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
-No requirements.
+The following requirements are needed by this module:
+
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.7.0, < 2.0.0)
+
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 ## Resources
 
@@ -89,6 +93,10 @@ Description: The name of the Kusto cluster principal assignment.
 ### <a name="output_principal_name"></a> [principal\_name](#output\_principal\_name)
 
 Description: The name of the principal.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The resource ID of the Kusto database principal assignment.
 
 ### <a name="output_tenant_name"></a> [tenant\_name](#output\_tenant\_name)
 

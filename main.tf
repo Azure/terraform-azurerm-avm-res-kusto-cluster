@@ -16,14 +16,12 @@ resource "azurerm_kusto_cluster" "this" {
   tags                               = var.tags
   trusted_external_tenants           = var.trusted_external_tenants
   zones                              = var.zones
-  language_extensions                = var.language_extensions
 
   sku {
     name     = var.sku.name
     capacity = var.sku.capacity
   }
 
-  ## Resources supporting both SystemAssigned and UserAssigned
   dynamic "identity" {
     for_each = local.managed_identities.system_assigned_user_assigned
     content {
@@ -31,19 +29,13 @@ resource "azurerm_kusto_cluster" "this" {
       identity_ids = identity.value.user_assigned_resource_ids
     }
   }
-  ## Resources that only support SystemAssigned
-  dynamic "identity" {
-    for_each = local.managed_identities.system_assigned
+
+  dynamic "language_extension" {
+    for_each = var.language_extensions == null ? [] : sort(tolist(var.language_extensions))
+
     content {
-      type = identity.value.type
-    }
-  }
-  ## Resources that only support UserAssigned
-  dynamic "identity" {
-    for_each = local.managed_identities.user_assigned
-    content {
-      type         = identity.value.type
-      identity_ids = identity.value.user_assigned_resource_ids
+      name  = language_extension.value == "R" ? "R" : "PYTHON"
+      image = local.language_extension_images[language_extension.value]
     }
   }
 
@@ -60,7 +52,7 @@ resource "azurerm_kusto_cluster" "this" {
     for_each = var.virtual_network_configuration == null ? [] : [var.virtual_network_configuration]
 
     content {
-      data_management_public_ip_id = virtual_network_configuration.value.data_management_public_ip
+      data_management_public_ip_id = virtual_network_configuration.value.data_management_public_ip_id
       engine_public_ip_id          = virtual_network_configuration.value.engine_public_ip_id
       subnet_id                    = virtual_network_configuration.value.subnet_id
     }
@@ -75,17 +67,6 @@ locals {
         user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
       }
     } : {}
-    system_assigned = var.managed_identities.system_assigned ? {
-      this = {
-        type = "SystemAssigned"
-      }
-    } : {}
-    user_assigned = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
-      this = {
-        type                       = "UserAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
   }
 }
 
@@ -96,6 +77,19 @@ resource "azurerm_management_lock" "this" {
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
   scope      = azurerm_kusto_cluster.this.id
+  notes      = var.lock.notes
+
+  depends_on = [
+    azurerm_monitor_diagnostic_setting.this,
+    azurerm_private_endpoint.this,
+    azurerm_private_endpoint.this_unmanaged_dns_zone_groups,
+    azurerm_private_endpoint_application_security_group_association.this,
+    azurerm_role_assignment.this,
+    azurerm_role_assignment.private_endpoints,
+    module.kusto_cluster_principal_assignment,
+    module.kusto_database,
+    module.kusto_database_principal_assignment,
+  ]
 }
 
 resource "azurerm_role_assignment" "this" {
@@ -106,6 +100,9 @@ resource "azurerm_role_assignment" "this" {
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
+  description                            = each.value.description
+  name                                   = each.value.name
+  principal_type                         = each.value.principal_type
   role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check

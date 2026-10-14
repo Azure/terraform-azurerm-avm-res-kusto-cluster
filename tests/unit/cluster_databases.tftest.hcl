@@ -1,8 +1,37 @@
 mock_provider "azurerm" {
+  alias  = "unit"
   source = "tests/setup/mock_data"
 }
 
+mock_provider "azapi" {
+  alias  = "unit"
+  source = "tests/setup/mock_azapi"
+}
+
+mock_provider "modtm" {
+  alias  = "unit"
+  source = "tests/setup/mock_modtm"
+}
+
+mock_provider "random" {
+  alias  = "unit"
+  source = "tests/setup/mock_random"
+}
+
+mock_provider "local" {
+  alias = "unit"
+}
+
 run "setup_dependencies" {
+  command = apply
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    local   = local.unit
+    random  = random.unit
+  }
+
   module {
     source = "./tests/setup/dependencies"
   }
@@ -28,6 +57,14 @@ run "setup_dependencies" {
 }
 
 run "validation_rules_required_pass" {
+  command = apply
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    modtm   = modtm.unit
+    random  = random.unit
+  }
 
   variables {
     name                = "demo"
@@ -61,6 +98,15 @@ run "validation_rules_required_pass" {
 }
 
 run "deploy_cluster_database_and_other_optional" {
+  command = apply
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    modtm   = modtm.unit
+    random  = random.unit
+  }
+
   variables {
     name                = "demo"
     resource_group_name = "demo"
@@ -78,7 +124,8 @@ run "deploy_cluster_database_and_other_optional" {
       kind = "CanNotDelete"
     }
     managed_identities = {
-      type = "SystemAssigned, UserAssigned"
+      system_assigned            = true
+      user_assigned_resource_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test"]
     }
     optimized_auto_scale = {
       minimum_instances = 2
@@ -142,12 +189,15 @@ run "deploy_cluster_database_and_other_optional" {
   }
 
   assert {
-    condition     = azurerm_kusto_cluster.this.identity[0].type == var.managed_identities.type
+    condition     = length(azurerm_kusto_cluster.this.identity) == 1 && azurerm_kusto_cluster.this.identity[0].type == "SystemAssigned, UserAssigned" && azurerm_kusto_cluster.this.identity[0].identity_ids == var.managed_identities.user_assigned_resource_ids
     error_message = "Managed identity is not equals to input variable."
   }
 
   assert {
-    condition     = azurerm_kusto_cluster.this.language_extensions == var.language_extensions
+    condition = toset(azurerm_kusto_cluster.this.language_extension) == toset([
+      { name = "PYTHON", image = "Python3_6_5" },
+      { name = "R", image = "R" },
+    ])
     error_message = "language_extensions is not equals to input variable."
   }
 
@@ -167,11 +217,21 @@ run "deploy_cluster_database_and_other_optional" {
   }
 
   assert {
-    condition     = var.enable_telemetry ? can(azurerm_management_lock.this[0]) : true
-    error_message = "enable_telemetry is not equals to input variable."
+    condition     = length(modtm_telemetry.telemetry) == 0 && length(random_uuid.telemetry) == 0 && length(data.azapi_client_config.telemetry) == 0
+    error_message = "Disabling telemetry must omit telemetry resources and the client lookup."
+  }
+
+  assert {
+    condition     = azurerm_management_lock.this[0].name == var.lock.name && azurerm_management_lock.this[0].lock_level == var.lock.kind
+    error_message = "The configured cluster lock must be created independently of telemetry."
   }
 
   # Database assertions
+  assert {
+    condition     = alltrue([for database in module.kusto_database : database.resource_id == database.id && database.resource_id != ""])
+    error_message = "Each database must expose its resource ID without removing the existing id output."
+  }
+
   assert {
     condition = alltrue(
       [
@@ -206,6 +266,13 @@ run "deploy_cluster_database_and_other_optional" {
 
 run "validation_rules_fails" {
   command = plan
+
+  providers = {
+    azapi   = azapi.unit
+    azurerm = azurerm.unit
+    modtm   = modtm.unit
+    random  = random.unit
+  }
 
   variables {
     name                = "de" # Invalid name

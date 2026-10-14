@@ -1,10 +1,14 @@
 terraform {
-  required_version = ">= 1.7.0"
+  required_version = ">= 1.8.0, < 2.0.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.12"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
+      version = "~> 4.45"
     }
     random = {
       source  = "hashicorp/random"
@@ -25,7 +29,7 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = ">= 0.3"
+  version = "0.8.2"
 }
 
 # example allows us to randomize the region for the resource group.
@@ -39,7 +43,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = ">= 0.3"
+  version = "0.4.4"
 }
 
 # This is required for resource modules
@@ -108,10 +112,14 @@ module "kusto" {
   kusto_database_principal_assignment = var.kusto_database_principal_assignment
   language_extensions                 = var.language_extensions
   lock                                = var.lock
-  managed_identities = {
-    type = "SystemAssigned"
-  }
-  outbound_network_access_restricted = var.outbound_network_access_restricted
+  managed_identities                  = var.managed_identities
+  outbound_network_access_restricted  = var.outbound_network_access_restricted
+  private_endpoints = merge(
+    { for key in ["pip1"] : key => {
+      subnet_resource_id = azurerm_subnet.example.id
+    } if length(var.private_endpoints) == 0 },
+    var.private_endpoints,
+  )
   # Commented as it is impacted by a bug that prevent the deployment to be idempotent https://github.com/Azure/azure-rest-api-specs/issues/22400
   # diagnostic_settings = {
   #   operations = {
@@ -120,19 +128,16 @@ module "kusto" {
   #     storage_account_resource_id = azurerm_storage_account.example.id
   #   }
   # }
-  private_endpoints = {
-    pip1 = {
-      subnet_resource_id = azurerm_subnet.example.id
-    }
-  }
-  public_ip_type                = var.public_ip_type
-  public_network_access_enabled = var.public_network_access_enabled
-  purge_enabled                 = var.purge_enabled
-  streaming_ingestion_enabled   = var.streaming_ingestion_enabled
-  tags                          = var.tags
-  trusted_external_tenants      = var.trusted_external_tenants
-  virtual_network_configuration = var.virtual_network_configuration
-  zones                         = var.zones
+  private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_group
+  public_ip_type                          = var.public_ip_type
+  public_network_access_enabled           = var.public_network_access_enabled
+  purge_enabled                           = var.purge_enabled
+  role_assignments                        = var.role_assignments
+  streaming_ingestion_enabled             = var.streaming_ingestion_enabled
+  tags                                    = var.tags
+  trusted_external_tenants                = var.trusted_external_tenants
+  virtual_network_configuration           = var.virtual_network_configuration
+  zones                                   = var.zones
 }
 
 # Call the kusto_database submodule directlty and reference the existing kusto cluster

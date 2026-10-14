@@ -1,18 +1,18 @@
 resource "azurerm_private_endpoint" "this" {
-  for_each = var.private_endpoints
+  for_each = { for key, endpoint in var.private_endpoints : key => endpoint if var.private_endpoints_manage_dns_zone_group }
 
   location                      = coalesce(each.value.location, var.location)
   name                          = each.value.name != null ? each.value.name : "pe-${var.name}"
   resource_group_name           = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
   subnet_id                     = each.value.subnet_resource_id
   custom_network_interface_name = each.value.network_interface_name
-  tags                          = each.value.tags
+  tags                          = each.value.tags != null ? each.value.tags : var.tags
 
   private_service_connection {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
     private_connection_resource_id = azurerm_kusto_cluster.this.id
-    subresource_names              = ["cluster"]
+    subresource_names              = [coalesce(each.value.subresource_name, "cluster")]
   }
 
   dynamic "ip_configuration" {
@@ -21,8 +21,8 @@ resource "azurerm_private_endpoint" "this" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "cluster"
-      subresource_name   = "cluster"
+      member_name        = coalesce(ip_configuration.value.member_name, each.value.subresource_name, "cluster")
+      subresource_name   = coalesce(each.value.subresource_name, "cluster")
     }
   }
 
@@ -36,9 +36,72 @@ resource "azurerm_private_endpoint" "this" {
   }
 }
 
+resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
+  for_each = { for key, endpoint in var.private_endpoints : key => endpoint if !var.private_endpoints_manage_dns_zone_group }
+
+  location                      = coalesce(each.value.location, var.location)
+  name                          = each.value.name != null ? each.value.name : "pe-${var.name}"
+  resource_group_name           = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
+  subnet_id                     = each.value.subnet_resource_id
+  custom_network_interface_name = each.value.network_interface_name
+  tags                          = each.value.tags != null ? each.value.tags : var.tags
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
+    private_connection_resource_id = azurerm_kusto_cluster.this.id
+    subresource_names              = [coalesce(each.value.subresource_name, "cluster")]
+  }
+
+  dynamic "ip_configuration" {
+    for_each = each.value.ip_configurations
+
+    content {
+      name               = ip_configuration.value.name
+      private_ip_address = ip_configuration.value.private_ip_address
+      member_name        = coalesce(ip_configuration.value.member_name, each.value.subresource_name, "cluster")
+      subresource_name   = coalesce(each.value.subresource_name, "cluster")
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
+  }
+}
+
 resource "azurerm_private_endpoint_application_security_group_association" "this" {
   for_each = local.private_endpoint_application_security_group_associations
 
   application_security_group_id = each.value.asg_resource_id
-  private_endpoint_id           = azurerm_private_endpoint.this[each.value.pe_key].id
+  private_endpoint_id           = local.private_endpoints[each.value.pe_key].id
+}
+
+resource "azurerm_role_assignment" "private_endpoints" {
+  for_each = local.private_endpoint_role_assignments
+
+  principal_id                           = each.value.role.principal_id
+  scope                                  = local.private_endpoints[each.value.pe_key].id
+  condition                              = each.value.role.condition
+  condition_version                      = each.value.role.condition_version
+  delegated_managed_identity_resource_id = each.value.role.delegated_managed_identity_resource_id
+  description                            = each.value.role.description
+  name                                   = each.value.role.name
+  principal_type                         = each.value.role.principal_type
+  role_definition_id                     = strcontains(lower(each.value.role.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role.role_definition_id_or_name : null
+  role_definition_name                   = strcontains(lower(each.value.role.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role.role_definition_id_or_name
+  skip_service_principal_aad_check       = each.value.role.skip_service_principal_aad_check
+}
+
+resource "azurerm_management_lock" "private_endpoints" {
+  for_each = local.private_endpoint_locks
+
+  lock_level = each.value.kind
+  name       = coalesce(each.value.name, "lock-${local.private_endpoints[each.key].name}")
+  scope      = local.private_endpoints[each.key].id
+  notes      = each.value.notes
+
+  depends_on = [
+    azurerm_private_endpoint_application_security_group_association.this,
+    azurerm_role_assignment.private_endpoints,
+  ]
 }
