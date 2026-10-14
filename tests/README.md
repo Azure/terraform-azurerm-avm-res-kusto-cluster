@@ -39,12 +39,15 @@ telemetry; the fixtures and their utility dependencies contain no telemetry.
 
 The identity must already be approved to create, read and delete these resources
 in the selected subscription. Resource providers, quota and the chosen region's
-support for `Dev(No SLA)_Standard_D11_v2` must be available. AzureRM v4 can
-auto-register additional resource providers; review the effective
-`ARM_RESOURCE_PROVIDER_REGISTRATIONS` setting without granting more access.
-No subscription or
-identity is hardcoded, and these tests must not use customer state or existing
-customer resources. Terraform test cleanup destroys its own deployments in reverse
+support for `Dev(No SLA)_Standard_D11_v2` must be available. Both test-scoped
+AzureRM providers set `resource_provider_registrations = "none"`; the setup
+fixture, root and their child modules inherit this configuration. Required
+providers `Microsoft.Network`, `Microsoft.OperationalInsights`, `Microsoft.Storage`,
+`Microsoft.Insights` and `Microsoft.Kusto` must already be registered in the
+approved test subscription. Missing registration is a prerequisite, not a reason
+to register providers or grant additional access.
+No subscription or identity is hardcoded, and these tests must not use customer
+state or existing customer resources. Terraform test cleanup destroys its own deployments in reverse
 run order; interrupted cleanup must be investigated before another run.
 
 Protected CI integration needs a fresh review of the exact commit, subscription,
