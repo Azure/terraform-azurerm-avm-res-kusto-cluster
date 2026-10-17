@@ -3,6 +3,15 @@ output "data_ingestion_uri" {
   value       = azurerm_kusto_cluster.this.data_ingestion_uri
 }
 
+output "databases" {
+  description = <<-DESCRIPTION
+  Information about the Kusto Databases created in the cluster.
+
+  Refer to the database module outputs for more details about the attributes exported.
+  DESCRIPTION
+  value       = module.kusto_database
+}
+
 output "id" {
   description = "The Kusto Cluster ID."
   value       = azurerm_kusto_cluster.this.id

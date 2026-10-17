@@ -38,7 +38,14 @@ resource "azurerm_kusto_cluster" "this" {
       image = local.language_extension_images[language_extension.value]
     }
   }
+  dynamic "language_extensions" {
+    for_each = var.language_extensions
 
+    content {
+      image = language_extensions.value.image
+      name  = language_extensions.value.name
+    }
+  }
   dynamic "optimized_auto_scale" {
     for_each = var.optimized_auto_scale == null ? [] : [var.optimized_auto_scale]
 
