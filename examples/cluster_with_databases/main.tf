@@ -42,8 +42,8 @@ resource "random_integer" "region_index" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.4"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 # This is required for resource modules
@@ -148,6 +148,7 @@ module "kusto_database" {
   location            = module.kusto.resource.location
   name                = module.naming.kusto_database.name_unique
   resource_group_name = module.kusto.resource.resource_group_name
+  enable_telemetry    = var.enable_telemetry
   hot_cache_period    = "P455D"
   soft_delete_period  = "P1D"
 }

@@ -6,16 +6,9 @@ mock_provider "azurerm" {
 mock_provider "azapi" {
   alias  = "unit"
   source = "tests/setup/mock_azapi"
-}
-
-mock_provider "modtm" {
-  alias  = "unit"
-  source = "tests/setup/mock_modtm"
-}
-
-mock_provider "random" {
-  alias  = "unit"
-  source = "tests/setup/mock_random"
+  mock_data "azapi_client_config" {
+    defaults = { "client_id" : "00000000-0000-0000-0000-000000000000", "object_id" : "00000000-0000-0000-0000-000000000000", "subscription_id" : "00000000-0000-0000-0000-000000000000", "subscription_resource_id" : "/subscriptions/00000000-0000-0000-0000-000000000000", "tenant_id" : "00000000-0000-0000-0000-000000000000" }
+  }
 }
 
 variables {
@@ -117,8 +110,6 @@ run "no_optional_resources" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -145,8 +136,6 @@ run "managed_endpoint_wiring" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   override_resource {
@@ -268,8 +257,6 @@ run "externally_managed_dns" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -326,8 +313,6 @@ run "managed_endpoint_defaults" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -365,8 +350,6 @@ run "external_dns_endpoint_defaults" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -404,8 +387,6 @@ run "system_assigned_identity" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -427,8 +408,6 @@ run "user_assigned_identity_and_v4_compatibility" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -471,8 +450,6 @@ run "empty_language_extensions" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -494,8 +471,6 @@ run "invalid_subnet_id" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -511,8 +486,6 @@ run "invalid_dns_zone_id" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -533,8 +506,6 @@ run "invalid_application_security_group_id" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -555,8 +526,6 @@ run "invalid_endpoint_delegated_identity" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -583,8 +552,6 @@ run "invalid_cluster_delegated_identity" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {

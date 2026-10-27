@@ -6,11 +6,9 @@ mock_provider "azurerm" {
 mock_provider "azapi" {
   alias  = "unit"
   source = "tests/setup/mock_azapi"
-}
-
-mock_provider "modtm" {
-  alias  = "unit"
-  source = "tests/setup/mock_modtm"
+  mock_data "azapi_client_config" {
+    defaults = { "client_id" : "00000000-0000-0000-0000-000000000000", "object_id" : "00000000-0000-0000-0000-000000000000", "subscription_id" : "00000000-0000-0000-0000-000000000000", "subscription_resource_id" : "/subscriptions/00000000-0000-0000-0000-000000000000", "tenant_id" : "00000000-0000-0000-0000-000000000000" }
+  }
 }
 
 mock_provider "random" {
@@ -43,8 +41,6 @@ run "validation_rules_required_pass" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -122,8 +118,6 @@ run "validation_rules_fails" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {

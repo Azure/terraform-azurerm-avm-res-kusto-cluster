@@ -6,11 +6,9 @@ mock_provider "azurerm" {
 mock_provider "azapi" {
   alias  = "unit"
   source = "tests/setup/mock_azapi"
-}
-
-mock_provider "modtm" {
-  alias  = "unit"
-  source = "tests/setup/mock_modtm"
+  mock_data "azapi_client_config" {
+    defaults = { "client_id" : "00000000-0000-0000-0000-000000000000", "object_id" : "00000000-0000-0000-0000-000000000000", "subscription_id" : "00000000-0000-0000-0000-000000000000", "subscription_resource_id" : "/subscriptions/00000000-0000-0000-0000-000000000000", "tenant_id" : "00000000-0000-0000-0000-000000000000" }
+  }
 }
 
 mock_provider "random" {
@@ -62,8 +60,6 @@ run "validation_rules_required_pass" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -103,8 +99,6 @@ run "deploy_cluster_database_and_other_optional" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {
@@ -217,7 +211,7 @@ run "deploy_cluster_database_and_other_optional" {
   }
 
   assert {
-    condition     = length(modtm_telemetry.telemetry) == 0 && length(random_uuid.telemetry) == 0 && length(data.azapi_client_config.telemetry) == 0
+    condition     = length(terraform_data.telemetry) == 0 && length(azapi_resource.telemetry) == 0 && length(data.azapi_client_config.telemetry) == 0
     error_message = "Disabling telemetry must omit telemetry resources and the client lookup."
   }
 
@@ -270,8 +264,6 @@ run "validation_rules_fails" {
   providers = {
     azapi   = azapi.unit
     azurerm = azurerm.unit
-    modtm   = modtm.unit
-    random  = random.unit
   }
 
   variables {

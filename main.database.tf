@@ -7,6 +7,7 @@ module "kusto_database" {
   location            = each.value.location == null ? azurerm_kusto_cluster.this.location : each.value.location
   name                = each.value.name
   resource_group_name = each.value.resource_group_name == null ? azurerm_kusto_cluster.this.resource_group_name : each.value.resource_group_name
+  enable_telemetry    = var.enable_telemetry
   hot_cache_period    = each.value.hot_cache_period
   soft_delete_period  = each.value.soft_delete_period
 }
