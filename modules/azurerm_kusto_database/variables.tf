@@ -19,6 +19,17 @@ variable "resource_group_name" {
   description = "(Required) Specifies the Resource Group where the Kusto Database should exist. Changing this forces a new resource to be created."
 }
 
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "hot_cache_period" {
   type        = string
   default     = null

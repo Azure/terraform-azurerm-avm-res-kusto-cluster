@@ -1,4 +1,3 @@
-
 output "azurerm_log_analytics_workspace" {
   value = {
     # Filter output to remove the sensitive keys

@@ -8,6 +8,12 @@ variable "database_name" {
   description = "(Required) The name of the database in which to create the resource. Changing this forces a new resource to be created."
 }
 
+variable "location" {
+  type        = string
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}
+
 variable "name" {
   type        = string
   description = "(Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created."
@@ -60,4 +66,15 @@ variable "tenant_id" {
     condition     = can(regex("^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$", var.tenant_id))
     error_message = "The value you have set is not a valid GUID."
   }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
 }
