@@ -4,7 +4,6 @@ module "kusto_cluster_principal_assignment" {
   for_each = var.kusto_cluster_principal_assignments
 
   cluster_name        = azurerm_kusto_cluster.this.name
-  location            = var.location
   name                = each.value.name
   principal_id        = each.value.principal_id
   principal_type      = each.value.principal_type
@@ -12,4 +11,5 @@ module "kusto_cluster_principal_assignment" {
   role                = each.value.role
   tenant_id           = each.value.tenant_id
   enable_telemetry    = var.enable_telemetry
+  location            = var.location
 }

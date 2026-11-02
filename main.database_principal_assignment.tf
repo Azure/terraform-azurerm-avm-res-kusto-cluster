@@ -5,7 +5,6 @@ module "kusto_database_principal_assignment" {
 
   cluster_name        = azurerm_kusto_cluster.this.name
   database_name       = each.value.database_name
-  location            = var.location
   name                = each.value.name
   principal_id        = each.value.principal_id
   principal_type      = each.value.principal_type
@@ -13,4 +12,5 @@ module "kusto_database_principal_assignment" {
   role                = each.value.role
   tenant_id           = each.value.tenant_id
   enable_telemetry    = var.enable_telemetry
+  location            = var.location
 }
