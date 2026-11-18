@@ -16,7 +16,7 @@ terraform -chdir=examples/default apply
 
 ```hcl
 terraform {
-  required_version = ">= 1.8.0, < 2.0.0"
+  required_version = ">= 1.11.0, < 2.0.0"
 
   required_providers {
     azurerm = {
@@ -94,7 +94,7 @@ module "kusto" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8.0, < 2.0.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.11.0, < 2.0.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.45)
 
